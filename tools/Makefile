@@ -27,26 +27,30 @@
 
 RM=rm
 YACC.y=yacc
+LFLAGS= -t -v
+YFLAGS= -d -v
+LEX=lex
+MV=mv
 
 CC=gcc
-CFLAGS=-I.. -I. -I../linux -I/usr/include/libelf -I../libstand -I../libstandctf -D_MDB -D__USE_LARGEFILE64 -D__USE_GNU
+CFLAGS=-g -I.. -I. -I./port -I/usr/include/libelf -I../libstand -I../libstandctf -D_MDB -D__USE_LARGEFILE64 -D__USE_GNU -DNO_SYSINFO
 CPPFLAGS=
-LDFLAGS=
+LDFLAGS=-lm -lrt -ldl
 CCNEEDED=
 
 LINK.c=     $(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS)
 LINK64.c=   $(CC) $(CFLAGS64) $(CPPFLAGS) $(LDFLAGS)
-NORUNPATH=  -norunpath -nolib
+NORUNPATH=  -norunpath -nolib 
 LINK.cc=    $(CCC) $(CCFLAGS) $(CPPFLAGS) $(NORUNPATH) \
 	        $(LDFLAGS) $(CCNEEDED)
 LINK64.cc=  $(CCC) $(CCFLAGS64) $(CPPFLAGS) $(NORUNPATH) \
 	        $(LDFLAGS) $(CCNEEDED)
 
-CFILES=$(wildcard *.c) $(wildcard *.y)
-OBJECTS=$(patsubst %.c, %.o, $(CFILES))
+CFILES=$(wildcard *.c) 
+OBJECTS=$(sort $(patsubst %.c, %.o, $(CFILES)) mdb_lex.o mdb_grammar.o)
 TARGET=libcommdb.so
 
-$(TARGET):$(OBJECTS)
+$(TARGET):mdb_lex.o $(OBJECTS)
 	$(CC) -share -o $(TARGET) $(LDFLAGS) $(LIB) $(OBJECTS)
 
 .c:
@@ -56,3 +60,14 @@ $(TARGET):$(OBJECTS)
 	$(YACC.y) $<
 	$(LINK.c) -o $@ y.tab.c $(LDLIBS)
 	$(RM) y.tab.c
+
+mdb_lex.c: mdb_lex.l mdb_grammar.h
+	$(LEX) $(LFLAGS) mdb_lex.l > $@ 
+
+mdb_grammar.h mdb_grammar.c: mdb_grammar.y
+	$(YACC) $(YFLAGS) mdb_grammar.y
+	@$(MV) y.tab.h mdb_grammar.h
+	@$(MV) y.tab.c mdb_grammar.c
+
+clean:
+	rm -rf *.o y.tab.h y.tab.c mdb_grammar.h mdb_grammar.c mdb_lex.c y.output

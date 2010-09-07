@@ -283,11 +283,12 @@ typedef struct ugrep_walk_data {
 int
 ugrep_mapping_cb(uintptr_t addr, const void *prm_arg, void *data)
 {
-	ugrep_walk_data_t *ug = data;
-	const prmap_t *prm = prm_arg;
-
-	return (ug->ug_cb(prm->pr_vaddr, prm->pr_vaddr + prm->pr_size,
-	    ug->ug_cbdata));
+//	ugrep_walk_data_t *ug = data;
+//	const prmap_t *prm = prm_arg;
+//
+//	return (ug->ug_cb(prm->pr_vaddr, prm->pr_vaddr + prm->pr_size,
+//	    ug->ug_cbdata));
+	return 0;
 }
 
 int

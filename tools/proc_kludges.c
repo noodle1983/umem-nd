@@ -27,7 +27,7 @@
 #pragma ident	"%Z%%M%	%I%	%E% SMI"
 
 #include <mdb/mdb_modapi.h>
-#include <sys/machelf.h>
+//#include <sys/machelf.h>
 
 #include <libproc.h>
 #include <stdio.h>
@@ -42,39 +42,39 @@ typedef struct prockuldge_mappings {
 	uint_t pkm_count;
 	uint_t pkm_max;
 
-	prmap_t *pkm_mappings;
+//	prmap_t *pkm_mappings;
 
 	uint_t pkm_old_max;
-	prmap_t *pkm_old_mappings;
+//	prmap_t *pkm_old_mappings;
 } prockludge_mappings_t;
 
 /* ARGSUSED */
-static int
-prockludge_mappings_iter(prockludge_mappings_t *pkm, const prmap_t *pmp,
-    const char *object_name)
-{
-	if (pkm->pkm_count >= pkm->pkm_max) {
-		int s = pkm->pkm_max ? pkm->pkm_max * 2 : 16;
-
-		pkm->pkm_old_max = pkm->pkm_max;
-		pkm->pkm_old_mappings = pkm->pkm_mappings;
-		pkm->pkm_max = s;
-		pkm->pkm_mappings = mdb_alloc(sizeof (prmap_t) * s, UM_SLEEP);
-
-		bcopy(pkm->pkm_old_mappings, pkm->pkm_mappings,
-		    sizeof (prmap_t) * pkm->pkm_old_max);
-
-		mdb_free(pkm->pkm_old_mappings,
-		    sizeof (prmap_t) * pkm->pkm_old_max);
-
-		pkm->pkm_old_mappings = NULL;
-		pkm->pkm_old_max = 0;
-	}
-	bcopy(pmp, &pkm->pkm_mappings[pkm->pkm_count++], sizeof (prmap_t));
-
-	return (0);
-}
-
+//static int
+//prockludge_mappings_iter(prockludge_mappings_t *pkm, const prmap_t *pmp,
+//    const char *object_name)
+//{
+//	if (pkm->pkm_count >= pkm->pkm_max) {
+//		int s = pkm->pkm_max ? pkm->pkm_max * 2 : 16;
+//
+//		pkm->pkm_old_max = pkm->pkm_max;
+//		pkm->pkm_old_mappings = pkm->pkm_mappings;
+//		pkm->pkm_max = s;
+//		pkm->pkm_mappings = mdb_alloc(sizeof (prmap_t) * s, UM_SLEEP);
+//
+//		bcopy(pkm->pkm_old_mappings, pkm->pkm_mappings,
+//		    sizeof (prmap_t) * pkm->pkm_old_max);
+//
+//		mdb_free(pkm->pkm_old_mappings,
+//		    sizeof (prmap_t) * pkm->pkm_old_max);
+//
+//		pkm->pkm_old_mappings = NULL;
+//		pkm->pkm_old_max = 0;
+//	}
+//	bcopy(pmp, &pkm->pkm_mappings[pkm->pkm_count++], sizeof (prmap_t));
+//
+//	return (0);
+//}
+//
 int
 prockludge_mappings_walk_init(mdb_walk_state_t *mws)
 {
@@ -92,14 +92,15 @@ prockludge_mappings_walk_init(mdb_walk_state_t *mws)
 	pkm->pkm_Pr = Pr;
 	mws->walk_data = pkm;
 
-	rc = Pmapping_iter(Pr, (proc_map_f *)prockludge_mappings_iter, pkm);
-	if (rc != 0) {
-		mdb_warn("Pmapping_iter failed");
-		/* clean up */
-		prockludge_mappings_walk_fini(mws);
+//	rc = Pmapping_iter(Pr, (proc_map_f *)prockludge_mappings_iter, pkm);
+//	if (rc != 0) {
+//		mdb_warn("Pmapping_iter failed");
+//		/* clean up */
+//		prockludge_mappings_walk_fini(mws);
+//		return (WALK_ERR);
+//	}
+//	return (WALK_NEXT);
 		return (WALK_ERR);
-	}
-	return (WALK_NEXT);
 }
 
 int
@@ -111,8 +112,8 @@ prockludge_mappings_walk_step(mdb_walk_state_t *wsp)
 	if (pkm->pkm_idx >= pkm->pkm_count)
 		return (WALK_DONE);
 
-	status = wsp->walk_callback(0, &pkm->pkm_mappings[pkm->pkm_idx++],
-	    wsp->walk_cbdata);
+//	status = wsp->walk_callback(0, &pkm->pkm_mappings[pkm->pkm_idx++],
+//	    wsp->walk_cbdata);
 
 	return (status);
 }
@@ -120,19 +121,19 @@ prockludge_mappings_walk_step(mdb_walk_state_t *wsp)
 void
 prockludge_mappings_walk_fini(mdb_walk_state_t *wsp)
 {
-	prockludge_mappings_t *pkm = wsp->walk_data;
-	if (pkm != NULL) {
-		if (pkm->pkm_old_mappings != NULL) {
-			mdb_free(pkm->pkm_old_mappings,
-			    sizeof (prmap_t) * pkm->pkm_old_max);
-		}
-		if (pkm->pkm_mappings &&
-		    pkm->pkm_mappings != pkm->pkm_old_mappings) {
-			mdb_free(pkm->pkm_mappings,
-			    sizeof (prmap_t) * pkm->pkm_max);
-		}
-		mdb_free(pkm, sizeof (prockludge_mappings_t));
-	}
+//	prockludge_mappings_t *pkm = wsp->walk_data;
+//	if (pkm != NULL) {
+//		if (pkm->pkm_old_mappings != NULL) {
+//			mdb_free(pkm->pkm_old_mappings,
+//			    sizeof (prmap_t) * pkm->pkm_old_max);
+//		}
+//		if (pkm->pkm_mappings &&
+//		    pkm->pkm_mappings != pkm->pkm_old_mappings) {
+//			mdb_free(pkm->pkm_mappings,
+//			    sizeof (prmap_t) * pkm->pkm_max);
+//		}
+//		mdb_free(pkm, sizeof (prockludge_mappings_t));
+//	}
 }
 
 static int add_count = 0;

@@ -25,6 +25,7 @@
 
 #pragma ident	"%Z%%M%	%I%	%E% SMI"
 
+#include <sol_compat.h>
 #include "umem.h"
 
 #include <sys/vmem_impl_user.h>
@@ -34,7 +35,7 @@
 #include <libproc.h>
 #include <stdio.h>
 #include <string.h>
-#include <sys/stack.h>
+//#include <sys/stack.h>
 
 #include "leaky_impl.h"
 #include "misc.h"
@@ -87,7 +88,7 @@ typedef struct leaky_maps {
 	uintptr_t		lm_seg_count;
 	uintptr_t		lm_seg_max;
 
-	pstatus_t		*lm_pstatus;
+	//pstatus_t		*lm_pstatus;
 
 	leak_mtab_t		**lm_lmp;
 } leaky_maps_t;
@@ -219,129 +220,129 @@ leaky_read_segs(uintptr_t addr, const vmem_seg_t *seg, leaky_maps_t *lmp)
 }
 
 /* ARGSUSED */
-static int
-leaky_process_anon_mappings(uintptr_t ignored, const prmap_t *pmp,
-    leaky_maps_t *lmp)
-{
-	uintptr_t start = pmp->pr_vaddr;
-	uintptr_t end = pmp->pr_vaddr + pmp->pr_size;
-
-	leak_mtab_t *lm;
-	pstatus_t *Psp = lmp->lm_pstatus;
-
-	uintptr_t brk_start = Psp->pr_brkbase;
-	uintptr_t brk_end = Psp->pr_brkbase + Psp->pr_brksize;
-
-	int has_brk = 0;
-	int in_vmem = 0;
-
-	/*
-	 * This checks if there is any overlap between the segment and the brk.
-	 */
-	if (end > brk_start && start < brk_end)
-		has_brk = 1;
-
-	if (leaky_seg_search(start, lmp->lm_segs, lmp->lm_seg_count) != -1)
-		in_vmem = 1;
-
-	/*
-	 * We only want anonymous, mmaped memory.  That means:
-	 *
-	 * 1. Must be read-write
-	 * 2. Cannot be shared
-	 * 3. Cannot have backing
-	 * 4. Cannot be in the brk
-	 * 5. Cannot be part of the vmem heap.
-	 */
-	if ((pmp->pr_mflags & (MA_READ | MA_WRITE)) == (MA_READ | MA_WRITE) &&
-	    (pmp->pr_mflags & MA_SHARED) == 0 &&
-	    (pmp->pr_mapname[0] == 0) &&
-	    !has_brk &&
-	    !in_vmem) {
-		dprintf(("mmaped region: [%p, %p)\n", start, end));
-		lm = (*lmp->lm_lmp)++;
-		lm->lkm_base = start;
-		lm->lkm_limit = end;
-		lm->lkm_bufctl = LKM_CTL(pmp->pr_vaddr, LKM_CTL_MEMORY);
-	}
-
-	return (WALK_NEXT);
-}
+//static int
+//leaky_process_anon_mappings(uintptr_t ignored, const prmap_t *pmp,
+//    leaky_maps_t *lmp)
+//{
+//	uintptr_t start = pmp->pr_vaddr;
+//	uintptr_t end = pmp->pr_vaddr + pmp->pr_size;
+//
+//	leak_mtab_t *lm;
+//	pstatus_t *Psp = lmp->lm_pstatus;
+//
+//	uintptr_t brk_start = Psp->pr_brkbase;
+//	uintptr_t brk_end = Psp->pr_brkbase + Psp->pr_brksize;
+//
+//	int has_brk = 0;
+//	int in_vmem = 0;
+//
+//	/*
+//	 * This checks if there is any overlap between the segment and the brk.
+//	 */
+//	if (end > brk_start && start < brk_end)
+//		has_brk = 1;
+//
+//	if (leaky_seg_search(start, lmp->lm_segs, lmp->lm_seg_count) != -1)
+//		in_vmem = 1;
+//
+//	/*
+//	 * We only want anonymous, mmaped memory.  That means:
+//	 *
+//	 * 1. Must be read-write
+//	 * 2. Cannot be shared
+//	 * 3. Cannot have backing
+//	 * 4. Cannot be in the brk
+//	 * 5. Cannot be part of the vmem heap.
+//	 */
+//	if ((pmp->pr_mflags & (MA_READ | MA_WRITE)) == (MA_READ | MA_WRITE) &&
+//	    (pmp->pr_mflags & MA_SHARED) == 0 &&
+//	    (pmp->pr_mapname[0] == 0) &&
+//	    !has_brk &&
+//	    !in_vmem) {
+//		dprintf(("mmaped region: [%p, %p)\n", start, end));
+//		lm = (*lmp->lm_lmp)++;
+//		lm->lkm_base = start;
+//		lm->lkm_limit = end;
+//		lm->lkm_bufctl = LKM_CTL(pmp->pr_vaddr, LKM_CTL_MEMORY);
+//	}
+//
+//	return (WALK_NEXT);
+//}
 
 static void
 leaky_handle_sbrk(leaky_maps_t *lmp)
 {
-	uintptr_t brkbase = lmp->lm_pstatus->pr_brkbase;
-	uintptr_t brkend = brkbase + lmp->lm_pstatus->pr_brksize;
-
-	leak_mtab_t *lm;
-
-	leaky_seg_info_t *segs = lmp->lm_segs;
-
-	int x, first = -1, last = -1;
-
-	dprintf(("brk: [%p, %p)\n", brkbase, brkend));
-
-	for (x = 0; x < lmp->lm_seg_count; x++) {
-		if (segs[x].ls_start >= brkbase && segs[x].ls_end <= brkend) {
-			if (first == -1)
-				first = x;
-			last = x;
-		}
-	}
-
-	if (brkbase == brkend) {
-		dprintf(("empty brk -- do nothing\n"));
-	} else if (first == -1) {
-		dprintf(("adding [%p, %p) whole brk\n", brkbase, brkend));
-
-		lm = (*lmp->lm_lmp)++;
-		lm->lkm_base = brkbase;
-		lm->lkm_limit = brkend;
-		lm->lkm_bufctl = LKM_CTL(brkbase, LKM_CTL_MEMORY);
-	} else {
-		uintptr_t curbrk = P2ROUNDUP(brkbase, umem_pagesize);
-
-		if (curbrk != segs[first].ls_start) {
-			dprintf(("adding [%p, %p) in brk, before first seg\n",
-			    brkbase, segs[first].ls_start));
-
-			lm = (*lmp->lm_lmp)++;
-			lm->lkm_base = brkbase;
-			lm->lkm_limit = segs[first].ls_start;
-			lm->lkm_bufctl = LKM_CTL(brkbase, LKM_CTL_MEMORY);
-
-			curbrk = segs[first].ls_start;
-
-		} else if (curbrk != brkbase) {
-			dprintf(("ignore [%p, %p) -- realign\n", brkbase,
-			    curbrk));
-		}
-
-		for (x = first; x <= last; x++) {
-			if (curbrk < segs[x].ls_start) {
-				dprintf(("adding [%p, %p) in brk\n", curbrk,
-				    segs[x].ls_start));
-
-				lm = (*lmp->lm_lmp)++;
-				lm->lkm_base = curbrk;
-				lm->lkm_limit = segs[x].ls_start;
-				lm->lkm_bufctl = LKM_CTL(curbrk,
-				    LKM_CTL_MEMORY);
-			}
-			curbrk = segs[x].ls_end;
-		}
-
-		if (curbrk < brkend) {
-			dprintf(("adding [%p, %p) in brk, after last seg\n",
-			    curbrk, brkend));
-
-			lm = (*lmp->lm_lmp)++;
-			lm->lkm_base = curbrk;
-			lm->lkm_limit = brkend;
-			lm->lkm_bufctl = LKM_CTL(curbrk, LKM_CTL_MEMORY);
-		}
-	}
+//	uintptr_t brkbase = lmp->lm_pstatus->pr_brkbase;
+//	uintptr_t brkend = brkbase + lmp->lm_pstatus->pr_brksize;
+//
+//	leak_mtab_t *lm;
+//
+//	leaky_seg_info_t *segs = lmp->lm_segs;
+//
+//	int x, first = -1, last = -1;
+//
+//	dprintf(("brk: [%p, %p)\n", brkbase, brkend));
+//
+//	for (x = 0; x < lmp->lm_seg_count; x++) {
+//		if (segs[x].ls_start >= brkbase && segs[x].ls_end <= brkend) {
+//			if (first == -1)
+//				first = x;
+//			last = x;
+//		}
+//	}
+//
+//	if (brkbase == brkend) {
+//		dprintf(("empty brk -- do nothing\n"));
+//	} else if (first == -1) {
+//		dprintf(("adding [%p, %p) whole brk\n", brkbase, brkend));
+//
+//		lm = (*lmp->lm_lmp)++;
+//		lm->lkm_base = brkbase;
+//		lm->lkm_limit = brkend;
+//		lm->lkm_bufctl = LKM_CTL(brkbase, LKM_CTL_MEMORY);
+//	} else {
+//		uintptr_t curbrk = P2ROUNDUP(brkbase, umem_pagesize);
+//
+//		if (curbrk != segs[first].ls_start) {
+//			dprintf(("adding [%p, %p) in brk, before first seg\n",
+//			    brkbase, segs[first].ls_start));
+//
+//			lm = (*lmp->lm_lmp)++;
+//			lm->lkm_base = brkbase;
+//			lm->lkm_limit = segs[first].ls_start;
+//			lm->lkm_bufctl = LKM_CTL(brkbase, LKM_CTL_MEMORY);
+//
+//			curbrk = segs[first].ls_start;
+//
+//		} else if (curbrk != brkbase) {
+//			dprintf(("ignore [%p, %p) -- realign\n", brkbase,
+//			    curbrk));
+//		}
+//
+//		for (x = first; x <= last; x++) {
+//			if (curbrk < segs[x].ls_start) {
+//				dprintf(("adding [%p, %p) in brk\n", curbrk,
+//				    segs[x].ls_start));
+//
+//				lm = (*lmp->lm_lmp)++;
+//				lm->lkm_base = curbrk;
+//				lm->lkm_limit = segs[x].ls_start;
+//				lm->lkm_bufctl = LKM_CTL(curbrk,
+//				    LKM_CTL_MEMORY);
+//			}
+//			curbrk = segs[x].ls_end;
+//		}
+//
+//		if (curbrk < brkend) {
+//			dprintf(("adding [%p, %p) in brk, after last seg\n",
+//			    curbrk, brkend));
+//
+//			lm = (*lmp->lm_lmp)++;
+//			lm->lkm_base = curbrk;
+//			lm->lkm_limit = brkend;
+//			lm->lkm_bufctl = LKM_CTL(curbrk, LKM_CTL_MEMORY);
+//		}
+//	}
 }
 
 static int
@@ -354,73 +355,73 @@ leaky_handle_anon_mappings(leak_mtab_t **lmp)
 	vmem_t *heap_top;
 	vmem_t vmem;
 
-	pstatus_t Ps;
-
-	if (mdb_get_xdata("pstatus", &Ps, sizeof (Ps)) == -1) {
-		mdb_warn("couldn't read pstatus xdata");
-		return (DCMD_ERR);
-	}
-	lm.lm_pstatus = &Ps;
-
-	leak_brkbase = Ps.pr_brkbase;
-	leak_brksize = Ps.pr_brksize;
-
-	if (umem_readvar(&heap_arena, "heap_arena") == -1) {
-		mdb_warn("couldn't read heap_arena");
-		return (DCMD_ERR);
-	}
-
-	if (heap_arena == NULL) {
-		mdb_warn("heap_arena is NULL.\n");
-		return (DCMD_ERR);
-	}
-
-	for (vm_next = heap_arena; vm_next != NULL; vm_next = vmem.vm_source) {
-		if (mdb_vread(&vmem, sizeof (vmem), (uintptr_t)vm_next) == -1) {
-			mdb_warn("couldn't read vmem at %p", vm_next);
-			return (DCMD_ERR);
-		}
-		heap_top = vm_next;
-	}
-
-	lm.lm_seg_count = 0;
-	lm.lm_seg_max = 0;
-
-	if (mdb_pwalk("vmem_span", (mdb_walk_cb_t)leaky_count,
-	    &lm.lm_seg_max, (uintptr_t)heap_top) == -1) {
-		mdb_warn("couldn't walk vmem_span for vmem %p", heap_top);
-		return (DCMD_ERR);
-	}
-	lm.lm_segs = mdb_alloc(lm.lm_seg_max * sizeof (*lm.lm_segs),
-	    UM_SLEEP | UM_GC);
-
-	if (mdb_pwalk("vmem_span", (mdb_walk_cb_t)leaky_read_segs, &lm,
-	    (uintptr_t)heap_top) == -1) {
-		mdb_warn("couldn't walk vmem_span for vmem %p",
-		    heap_top);
-		return (DCMD_ERR);
-	}
-
-	if (lm.lm_seg_count > lm.lm_seg_max) {
-		mdb_warn("segment list for vmem %p grew\n", heap_top);
-		return (DCMD_ERR);
-	}
-
-	qsort(lm.lm_segs, lm.lm_seg_count, sizeof (*lm.lm_segs), leaky_seg_cmp);
-
-	lm.lm_lmp = lmp;
-
-	prockludge_add_walkers();
-
-	if (mdb_walk(KLUDGE_MAPWALK_NAME,
-	    (mdb_walk_cb_t)leaky_process_anon_mappings, &lm) == -1) {
-		mdb_warn("Couldn't walk "KLUDGE_MAPWALK_NAME);
-		prockludge_remove_walkers();
-		return (DCMD_ERR);
-	}
-
-	prockludge_remove_walkers();
-	leaky_handle_sbrk(&lm);
+//	pstatus_t Ps;
+//
+//	if (mdb_get_xdata("pstatus", &Ps, sizeof (Ps)) == -1) {
+//		mdb_warn("couldn't read pstatus xdata");
+//		return (DCMD_ERR);
+//	}
+//	lm.lm_pstatus = &Ps;
+//
+//	leak_brkbase = Ps.pr_brkbase;
+//	leak_brksize = Ps.pr_brksize;
+//
+//	if (umem_readvar(&heap_arena, "heap_arena") == -1) {
+//		mdb_warn("couldn't read heap_arena");
+//		return (DCMD_ERR);
+//	}
+//
+//	if (heap_arena == NULL) {
+//		mdb_warn("heap_arena is NULL.\n");
+//		return (DCMD_ERR);
+//	}
+//
+//	for (vm_next = heap_arena; vm_next != NULL; vm_next = vmem.vm_source) {
+//		if (mdb_vread(&vmem, sizeof (vmem), (uintptr_t)vm_next) == -1) {
+//			mdb_warn("couldn't read vmem at %p", vm_next);
+//			return (DCMD_ERR);
+//		}
+//		heap_top = vm_next;
+//	}
+//
+//	lm.lm_seg_count = 0;
+//	lm.lm_seg_max = 0;
+//
+//	if (mdb_pwalk("vmem_span", (mdb_walk_cb_t)leaky_count,
+//	    &lm.lm_seg_max, (uintptr_t)heap_top) == -1) {
+//		mdb_warn("couldn't walk vmem_span for vmem %p", heap_top);
+//		return (DCMD_ERR);
+//	}
+//	lm.lm_segs = mdb_alloc(lm.lm_seg_max * sizeof (*lm.lm_segs),
+//	    UM_SLEEP | UM_GC);
+//
+//	if (mdb_pwalk("vmem_span", (mdb_walk_cb_t)leaky_read_segs, &lm,
+//	    (uintptr_t)heap_top) == -1) {
+//		mdb_warn("couldn't walk vmem_span for vmem %p",
+//		    heap_top);
+//		return (DCMD_ERR);
+//	}
+//
+//	if (lm.lm_seg_count > lm.lm_seg_max) {
+//		mdb_warn("segment list for vmem %p grew\n", heap_top);
+//		return (DCMD_ERR);
+//	}
+//
+//	qsort(lm.lm_segs, lm.lm_seg_count, sizeof (*lm.lm_segs), leaky_seg_cmp);
+//
+//	lm.lm_lmp = lmp;
+//
+//	prockludge_add_walkers();
+//
+//	if (mdb_walk(KLUDGE_MAPWALK_NAME,
+//	    (mdb_walk_cb_t)leaky_process_anon_mappings, &lm) == -1) {
+//		mdb_warn("Couldn't walk "KLUDGE_MAPWALK_NAME);
+//		prockludge_remove_walkers();
+//		return (DCMD_ERR);
+//	}
+//
+//	prockludge_remove_walkers();
+//	leaky_handle_sbrk(&lm);
 
 	return (DCMD_OK);
 }
@@ -505,144 +506,144 @@ leaky_mappings_header(void)
 	dprintf((map_head, "mapping", "", "backing"));
 }
 
-/* ARGSUSED */
-static int
-leaky_grep_mappings(uintptr_t ignored, const prmap_t *pmp,
-    const pstatus_t *Psp)
-{
-	const char *map_libname_ptr;
-	char db_mp_name[BACKING_LEN+1];
-
-	map_libname_ptr = strrchr(pmp->pr_mapname, '/');
-	if (map_libname_ptr != NULL)
-		map_libname_ptr++;
-	else
-		map_libname_ptr = pmp->pr_mapname;
-
-	strlcpy(db_mp_name, map_libname_ptr, sizeof (db_mp_name));
-
-	dprintf((map_fmt, pmp->pr_vaddr, (char *)pmp->pr_vaddr + pmp->pr_size,
-	    db_mp_name));
-
-#define	USE(rsn)	dprintf_cont(("yes  %s\n", (rsn)))
-#define	IGNORE(rsn)	dprintf_cont(("no   %s\n", (rsn)))
-
-	if (!(pmp->pr_mflags & MA_WRITE) || !(pmp->pr_mflags & MA_READ)) {
-		IGNORE("read-only");
-	} else if (pmp->pr_vaddr <= Psp->pr_brkbase &&
-	    pmp->pr_vaddr + pmp->pr_size > Psp->pr_brkbase) {
-		USE("bss");			/* grab up to brkbase */
-		leaky_grep(pmp->pr_vaddr, Psp->pr_brkbase - pmp->pr_vaddr);
-	} else if (pmp->pr_vaddr >= Psp->pr_brkbase &&
-	    pmp->pr_vaddr < Psp->pr_brkbase + Psp->pr_brksize) {
-		IGNORE("in brk");
-	} else if (pmp->pr_vaddr == Psp->pr_stkbase &&
-	    pmp->pr_size == Psp->pr_stksize) {
-		IGNORE("stack");
-	} else if (0 == strcmp(map_libname_ptr, "a.out")) {
-		USE("a.out data");
-		leaky_grep(pmp->pr_vaddr, pmp->pr_size);
-	} else if (0 == strncmp(map_libname_ptr, "libumem.so", 10)) {
-		IGNORE("part of umem");
-	} else if (pmp->pr_mapname[0] != 0) {
-		USE("lib data");		/* library data/bss */
-		leaky_grep(pmp->pr_vaddr, pmp->pr_size);
-	} else if ((pmp->pr_mflags & MA_ANON) && pmp->pr_mapname[0] == 0) {
-		IGNORE("anon");
-	} else {
-		IGNORE("");		/* default to ignoring */
-	}
-
-#undef	USE
-#undef	IGNORE
-
-	return (WALK_NEXT);
-}
-
-/*ARGSUSED*/
-static int
-leaky_mark_lwp(void *ignored, const lwpstatus_t *lwp)
-{
-	leaky_mark_ptr(lwp->pr_reg[R_SP] + STACK_BIAS);
-	return (0);
-}
+///* ARGSUSED */
+//static int
+//leaky_grep_mappings(uintptr_t ignored, const prmap_t *pmp,
+//    const pstatus_t *Psp)
+//{
+//	const char *map_libname_ptr;
+//	char db_mp_name[BACKING_LEN+1];
+//
+//	map_libname_ptr = strrchr(pmp->pr_mapname, '/');
+//	if (map_libname_ptr != NULL)
+//		map_libname_ptr++;
+//	else
+//		map_libname_ptr = pmp->pr_mapname;
+//
+//	strlcpy(db_mp_name, map_libname_ptr, sizeof (db_mp_name));
+//
+//	dprintf((map_fmt, pmp->pr_vaddr, (char *)pmp->pr_vaddr + pmp->pr_size,
+//	    db_mp_name));
+//
+//#define	USE(rsn)	dprintf_cont(("yes  %s\n", (rsn)))
+//#define	IGNORE(rsn)	dprintf_cont(("no   %s\n", (rsn)))
+//
+//	if (!(pmp->pr_mflags & MA_WRITE) || !(pmp->pr_mflags & MA_READ)) {
+//		IGNORE("read-only");
+//	} else if (pmp->pr_vaddr <= Psp->pr_brkbase &&
+//	    pmp->pr_vaddr + pmp->pr_size > Psp->pr_brkbase) {
+//		USE("bss");			/* grab up to brkbase */
+//		leaky_grep(pmp->pr_vaddr, Psp->pr_brkbase - pmp->pr_vaddr);
+//	} else if (pmp->pr_vaddr >= Psp->pr_brkbase &&
+//	    pmp->pr_vaddr < Psp->pr_brkbase + Psp->pr_brksize) {
+//		IGNORE("in brk");
+//	} else if (pmp->pr_vaddr == Psp->pr_stkbase &&
+//	    pmp->pr_size == Psp->pr_stksize) {
+//		IGNORE("stack");
+//	} else if (0 == strcmp(map_libname_ptr, "a.out")) {
+//		USE("a.out data");
+//		leaky_grep(pmp->pr_vaddr, pmp->pr_size);
+//	} else if (0 == strncmp(map_libname_ptr, "libumem.so", 10)) {
+//		IGNORE("part of umem");
+//	} else if (pmp->pr_mapname[0] != 0) {
+//		USE("lib data");		/* library data/bss */
+//		leaky_grep(pmp->pr_vaddr, pmp->pr_size);
+//	} else if ((pmp->pr_mflags & MA_ANON) && pmp->pr_mapname[0] == 0) {
+//		IGNORE("anon");
+//	} else {
+//		IGNORE("");		/* default to ignoring */
+//	}
+//
+//#undef	USE
+//#undef	IGNORE
+//
+//	return (WALK_NEXT);
+//}
 
 /*ARGSUSED*/
-static int
-leaky_process_lwp(void *ignored, const lwpstatus_t *lwp)
-{
-	const uintptr_t *regs = (const uintptr_t *)&lwp->pr_reg;
-	int i;
-	uintptr_t sp;
-	uintptr_t addr;
-	size_t size;
-
-	for (i = 0; i < R_SP; i++)
-		leaky_grep_ptr(regs[i]);
-
-	sp = regs[i++] + STACK_BIAS;
-	if (leaky_lookup_marked(sp, &addr, &size))
-		leaky_grep(sp, size - (sp - addr));
-
-	for (; i < NPRGREG; i++)
-		leaky_grep_ptr(regs[i]);
-
-	return (0);
-}
-
-/*
- * Handles processing various proc-related things:
- * 1. calls leaky_process_lwp on each the LWP
- * 2. leaky_greps the bss/data of libraries and a.out, and the a.out stack.
- */
-static int
-leaky_process_proc(void)
-{
-	pstatus_t Ps;
-	struct ps_prochandle *Pr;
-
-	if (mdb_get_xdata("pstatus", &Ps, sizeof (Ps)) == -1) {
-		mdb_warn("couldn't read pstatus xdata");
-		return (DCMD_ERR);
-	}
-
-	dprintf(("pstatus says:\n"));
-	dprintf(("\tbrk: base %p size %p\n",
-	    Ps.pr_brkbase, Ps.pr_brksize));
-	dprintf(("\tstk: base %p size %p\n",
-	    Ps.pr_stkbase, Ps.pr_stksize));
-
-	if (mdb_get_xdata("pshandle", &Pr, sizeof (Pr)) == -1) {
-		mdb_warn("couldn't read pshandle xdata");
-		return (DCMD_ERR);
-	}
-
-	if (Plwp_iter(Pr, leaky_mark_lwp, NULL) != 0) {
-		mdb_warn("findleaks: Failed to iterate lwps\n");
-		return (DCMD_ERR);
-	}
-
-	if (Plwp_iter(Pr, leaky_process_lwp, NULL) != 0) {
-		mdb_warn("findleaks: Failed to iterate lwps\n");
-		return (DCMD_ERR);
-	}
-
-	prockludge_add_walkers();
-
-	leaky_mappings_header();
-
-	if (mdb_walk(KLUDGE_MAPWALK_NAME, (mdb_walk_cb_t)leaky_grep_mappings,
-	    &Ps) == -1) {
-		mdb_warn("Couldn't walk "KLUDGE_MAPWALK_NAME);
-		prockludge_remove_walkers();
-		return (-1);
-	}
-
-	prockludge_remove_walkers();
-
-	return (0);
-}
-
+//static int
+//leaky_mark_lwp(void *ignored, const lwpstatus_t *lwp)
+//{
+//	leaky_mark_ptr(lwp->pr_reg[R_SP] + STACK_BIAS);
+//	return (0);
+//}
+//
+///*ARGSUSED*/
+//static int
+//leaky_process_lwp(void *ignored, const lwpstatus_t *lwp)
+//{
+//	const uintptr_t *regs = (const uintptr_t *)&lwp->pr_reg;
+//	int i;
+//	uintptr_t sp;
+//	uintptr_t addr;
+//	size_t size;
+//
+//	for (i = 0; i < R_SP; i++)
+//		leaky_grep_ptr(regs[i]);
+//
+//	sp = regs[i++] + STACK_BIAS;
+//	if (leaky_lookup_marked(sp, &addr, &size))
+//		leaky_grep(sp, size - (sp - addr));
+//
+//	for (; i < NPRGREG; i++)
+//		leaky_grep_ptr(regs[i]);
+//
+//	return (0);
+//}
+//
+///*
+// * Handles processing various proc-related things:
+// * 1. calls leaky_process_lwp on each the LWP
+// * 2. leaky_greps the bss/data of libraries and a.out, and the a.out stack.
+// */
+//static int
+//leaky_process_proc(void)
+//{
+//	pstatus_t Ps;
+//	struct ps_prochandle *Pr;
+//
+//	if (mdb_get_xdata("pstatus", &Ps, sizeof (Ps)) == -1) {
+//		mdb_warn("couldn't read pstatus xdata");
+//		return (DCMD_ERR);
+//	}
+//
+//	dprintf(("pstatus says:\n"));
+//	dprintf(("\tbrk: base %p size %p\n",
+//	    Ps.pr_brkbase, Ps.pr_brksize));
+//	dprintf(("\tstk: base %p size %p\n",
+//	    Ps.pr_stkbase, Ps.pr_stksize));
+//
+//	if (mdb_get_xdata("pshandle", &Pr, sizeof (Pr)) == -1) {
+//		mdb_warn("couldn't read pshandle xdata");
+//		return (DCMD_ERR);
+//	}
+//
+//	if (Plwp_iter(Pr, leaky_mark_lwp, NULL) != 0) {
+//		mdb_warn("findleaks: Failed to iterate lwps\n");
+//		return (DCMD_ERR);
+//	}
+//
+//	if (Plwp_iter(Pr, leaky_process_lwp, NULL) != 0) {
+//		mdb_warn("findleaks: Failed to iterate lwps\n");
+//		return (DCMD_ERR);
+//	}
+//
+//	prockludge_add_walkers();
+//
+//	leaky_mappings_header();
+//
+//	if (mdb_walk(KLUDGE_MAPWALK_NAME, (mdb_walk_cb_t)leaky_grep_mappings,
+//	    &Ps) == -1) {
+//		mdb_warn("Couldn't walk "KLUDGE_MAPWALK_NAME);
+//		prockludge_remove_walkers();
+//		return (-1);
+//	}
+//
+//	prockludge_remove_walkers();
+//
+//	return (0);
+//}
+//
 static void
 leaky_subr_caller(const uintptr_t *stack, uint_t depth, char *buf,
     uintptr_t *pcp)
@@ -776,10 +777,10 @@ leaky_subr_fill(leak_mtab_t **lmpp)
 int
 leaky_subr_run(void)
 {
-	if (leaky_process_proc() == DCMD_ERR) {
-		mdb_warn("failed to process proc");
-		return (DCMD_ERR);
-	}
+//	if (leaky_process_proc() == DCMD_ERR) {
+//		mdb_warn("failed to process proc");
+//		return (DCMD_ERR);
+//	}
 	return (DCMD_OK);
 }
 

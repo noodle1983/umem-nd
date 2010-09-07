@@ -1,0 +1,596 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.5.4	//
+BACKING_LEN	leaky_subr.c	500;"	d	file:
+CC	Makefile	/^CC=gcc$/;"	m
+CCNEEDED	Makefile	/^CCNEEDED=$/;"	m
+CFILES	Makefile	/^CFILES=$(wildcard *.c) $(wildcard *.y)$/;"	m
+CFLAGS	Makefile	/^CFLAGS=-I.. -I. -I.\/port -I\/usr\/include\/libelf -I..\/libstand -I..\/libstandctf -D_MDB -D__USE_LARGEFILE64 -D__USE_GNU$/;"	m
+CPPFLAGS	Makefile	/^CPPFLAGS=$/;"	m
+DCMD_ABORT	mdb/mdb_modapi.h	93;"	d
+DCMD_ADDRSPEC	mdb/mdb_modapi.h	78;"	d
+DCMD_ERR	mdb/mdb_modapi.h	90;"	d
+DCMD_HDRSPEC	mdb/mdb_modapi.h	84;"	d
+DCMD_LOOP	mdb/mdb_modapi.h	79;"	d
+DCMD_LOOPFIRST	mdb/mdb_modapi.h	80;"	d
+DCMD_NEXT	mdb/mdb_modapi.h	92;"	d
+DCMD_OK	mdb/mdb_modapi.h	89;"	d
+DCMD_PIPE	mdb/mdb_modapi.h	81;"	d
+DCMD_PIPE_OUT	mdb/mdb_modapi.h	82;"	d
+DCMD_USAGE	mdb/mdb_modapi.h	91;"	d
+FALSE	mdb/mdb_modapi.h	62;"	d
+IA64_REG_COUNT	libproc.h	81;"	d
+IGNORE	leaky_subr.c	528;"	d	file:
+IGNORE	leaky_subr.c	557;"	d	file:
+KLUDGE_MAPWALK_NAME	proc_kludges.h	36;"	d
+LDFLAGS	Makefile	/^LDFLAGS=$/;"	m
+LEAKY_INBRK	leaky_subr.c	77;"	d	file:
+LEAK_BUFCTL_SIZE	leaky_impl.h	63;"	d
+LKM_CTL	leaky_subr.c	70;"	d	file:
+LKM_CTLPTR	leaky_subr.c	71;"	d	file:
+LKM_CTLTYPE	leaky_subr.c	72;"	d	file:
+LKM_CTL_BUFCTL	leaky_subr.c	61;"	d	file:
+LKM_CTL_CACHE	leaky_subr.c	64;"	d	file:
+LKM_CTL_MASK	leaky_subr.c	65;"	d	file:
+LKM_CTL_MEMORY	leaky_subr.c	63;"	d	file:
+LKM_CTL_VMSEG	leaky_subr.c	62;"	d	file:
+LK_NUM_TYPES	leaky_impl.h	36;"	d
+MAX	mdb/mdb_modapi.h	70;"	d
+MAXNAMELEN	port/port_types.h	6;"	d
+MDB_API_VERSION	mdb/mdb_modapi.h	73;"	d
+MDB_CALLBACK_PROMPT	mdb/mdb_modapi.h	299;"	d
+MDB_CALLBACK_STCHG	mdb/mdb_modapi.h	298;"	d
+MDB_DUMP_ALIGN	mdb/mdb_modapi.h	254;"	d
+MDB_DUMP_ASCII	mdb/mdb_modapi.h	256;"	d
+MDB_DUMP_ENDIAN	mdb/mdb_modapi.h	261;"	d
+MDB_DUMP_GROUP	mdb/mdb_modapi.h	263;"	d
+MDB_DUMP_HEADER	mdb/mdb_modapi.h	257;"	d
+MDB_DUMP_NEWDOT	mdb/mdb_modapi.h	260;"	d
+MDB_DUMP_PEDANT	mdb/mdb_modapi.h	255;"	d
+MDB_DUMP_RELATIVE	mdb/mdb_modapi.h	253;"	d
+MDB_DUMP_SQUISH	mdb/mdb_modapi.h	259;"	d
+MDB_DUMP_TRIM	mdb/mdb_modapi.h	258;"	d
+MDB_DUMP_WIDTH	mdb/mdb_modapi.h	262;"	d
+MDB_OBJ_EVERY	mdb/mdb_modapi.h	214;"	d
+MDB_OBJ_EXEC	mdb/mdb_modapi.h	212;"	d
+MDB_OBJ_RTLD	mdb/mdb_modapi.h	213;"	d
+MDB_OPT_CLRBITS	mdb/mdb_modapi.h	226;"	d
+MDB_OPT_SETBITS	mdb/mdb_modapi.h	225;"	d
+MDB_OPT_STR	mdb/mdb_modapi.h	227;"	d
+MDB_OPT_UINT64	mdb/mdb_modapi.h	229;"	d
+MDB_OPT_UINTPTR	mdb/mdb_modapi.h	228;"	d
+MDB_OPT_UINTPTR_SET	mdb/mdb_modapi.h	230;"	d
+MDB_STATE_DEAD	mdb/mdb_modapi.h	293;"	d
+MDB_STATE_IDLE	mdb/mdb_modapi.h	289;"	d
+MDB_STATE_LOST	mdb/mdb_modapi.h	294;"	d
+MDB_STATE_RUNNING	mdb/mdb_modapi.h	290;"	d
+MDB_STATE_STOPPED	mdb/mdb_modapi.h	291;"	d
+MDB_STATE_UNDEAD	mdb/mdb_modapi.h	292;"	d
+MDB_SYM_EXACT	mdb/mdb_modapi.h	210;"	d
+MDB_SYM_FUZZY	mdb/mdb_modapi.h	209;"	d
+MDB_SYM_NAMLEN	mdb/mdb_modapi.h	207;"	d
+MDB_TYPE_CHAR	mdb/mdb_modapi.h	/^	MDB_TYPE_CHAR		\/* a_un.a_char is valid *\/$/;"	e
+MDB_TYPE_IMMEDIATE	mdb/mdb_modapi.h	/^	MDB_TYPE_IMMEDIATE,	\/* a_un.a_val is valid *\/$/;"	e
+MDB_TYPE_STRING	mdb/mdb_modapi.h	/^	MDB_TYPE_STRING,	\/* a_un.a_str is valid *\/$/;"	e
+MIN	mdb/mdb_modapi.h	66;"	d
+NORUNPATH	Makefile	/^NORUNPATH=  -norunpath -nolib$/;"	m
+NULL	mdb/mdb_modapi.h	51;"	d
+NULL	mdb/mdb_modapi.h	53;"	d
+OBJECTS	Makefile	/^OBJECTS=$(patsubst %.c, %.o, $(CFILES))$/;"	m
+OFFSETOF	mdb/mdb_modapi.h	95;"	d
+PAGESIZE	umem_pagesize.h	37;"	d
+PAGESIZE	umem_pagesize.h	38;"	d
+PORT_TYPE_H	port/port_types.h	2;"	d
+PS_BADADDR	proc_service.h	/^        PS_BADADDR,     \/* bad address *\/$/;"	e
+PS_BADLID	proc_service.h	/^        PS_BADLID,      \/* bad lwp identifier *\/$/;"	e
+PS_BADPID	proc_service.h	/^        PS_BADPID,      \/* bad process handle *\/$/;"	e
+PS_ERR	proc_service.h	/^        PS_ERR,         \/* generic error *\/$/;"	e
+PS_NOFREGS	proc_service.h	/^        PS_NOFREGS      \/* FPU register set not available for given lwp *\/$/;"	e
+PS_NOSYM	proc_service.h	/^        PS_NOSYM,       \/* p_lookup() could not find given symbol *\/$/;"	e
+PS_OK	proc_service.h	/^        PS_OK,          \/* generic "call succeeded" *\/$/;"	e
+READMAG_ROUNDS	umem.c	771;"	d	file:
+RM	Makefile	/^RM=rm$/;"	m
+TARGET	Makefile	/^TARGET=libcommdb.so$/;"	m
+TRUE	mdb/mdb_modapi.h	58;"	d
+TYPE_CACHE	leaky_subr.c	58;"	d	file:
+TYPE_MMAP	leaky_subr.c	55;"	d	file:
+TYPE_SBRK	leaky_subr.c	56;"	d	file:
+TYPE_UMEM	leaky_subr.c	59;"	d	file:
+TYPE_VMEM	leaky_subr.c	57;"	d	file:
+UMEM_OBJNAME	misc.c	30;"	d	file:
+UMEM_READVAR	umem.c	54;"	d	file:
+UMEM_WALK_ALL	umem.c	1398;"	d	file:
+UMI_MAX_BUCKET	umem.c	3680;"	d	file:
+UMI_MAX_BUCKET	umem.c	3682;"	d	file:
+UM_ALLOCATED	umem.c	41;"	d	file:
+UM_BUFCTL	umem.c	43;"	d	file:
+UM_FREE	umem.c	42;"	d	file:
+UM_GC	mdb/mdb_modapi.h	238;"	d
+UM_HASH	umem.c	44;"	d	file:
+UM_NOSLEEP	mdb/mdb_modapi.h	236;"	d
+UM_SLEEP	mdb/mdb_modapi.h	237;"	d
+USE	leaky_subr.c	527;"	d	file:
+USE	leaky_subr.c	556;"	d	file:
+VMEM_NAMEWIDTH	umem.c	3032;"	d	file:
+VMEM_NONE	umem.c	2961;"	d	file:
+WALK_DONE	mdb/mdb_modapi.h	127;"	d
+WALK_ERR	mdb/mdb_modapi.h	125;"	d
+WALK_NEXT	mdb/mdb_modapi.h	126;"	d
+_B_FALSE	port/port_types.h	/^typedef enum { _B_FALSE, _B_TRUE } boolean_t;$/;"	e
+_B_TRUE	port/port_types.h	/^typedef enum { _B_FALSE, _B_TRUE } boolean_t;$/;"	e
+_LEAKY_IMPL_H	leaky_impl.h	28;"	d
+_LIBPROC_H_	libproc.h	26;"	d
+_MDBMOD_MISC_H	misc.h	27;"	d
+_MDBMOD_UMEM_H	umem.h	27;"	d
+_MDB_MODAPI_H	mdb/mdb_modapi.h	27;"	d
+_MEMCHR_INLINE	mdb/mdb_modapi.h	364;"	d
+_PROC_KLUDGES_H	proc_kludges.h	28;"	d
+_PROC_SERVICE_H_	proc_service.h	26;"	d
+_STRCHR_INLINE	mdb/mdb_modapi.h	315;"	d
+_STRRCHR_INLINE	mdb/mdb_modapi.h	324;"	d
+_STRSTR_INLINE	mdb/mdb_modapi.h	333;"	d
+_UMEM_PAGESIZE_H	umem_pagesize.h	28;"	d
+_mdb_fini	libumem.c	/^_mdb_fini(void)$/;"	f
+_mdb_init	libumem.c	/^_mdb_init(void)$/;"	f
+a_char	mdb/mdb_modapi.h	/^		char a_char;$/;"	m	union:mdb_arg::<anonymous>
+a_str	mdb/mdb_modapi.h	/^		const char *a_str;$/;"	m	union:mdb_arg::<anonymous>
+a_type	mdb/mdb_modapi.h	/^	mdb_type_t a_type;$/;"	m	struct:mdb_arg
+a_un	mdb/mdb_modapi.h	/^	} a_un;$/;"	m	struct:mdb_arg
+a_val	mdb/mdb_modapi.h	/^		uintmax_t a_val;$/;"	m	union:mdb_arg::<anonymous>
+abb_addr	umem.c	/^	uintptr_t abb_addr;$/;"	m	struct:allocdby_bufctl	file:
+abb_ts	umem.c	/^	hrtime_t abb_ts;$/;"	m	struct:allocdby_bufctl	file:
+abw_buf	umem.c	/^	allocdby_bufctl_t *abw_buf;$/;"	m	struct:allocdby_walk	file:
+abw_nbufs	umem.c	/^	size_t abw_nbufs;$/;"	m	struct:allocdby_walk	file:
+abw_ndx	umem.c	/^	size_t abw_ndx;$/;"	m	struct:allocdby_walk	file:
+abw_size	umem.c	/^	size_t abw_size;$/;"	m	struct:allocdby_walk	file:
+abw_thread	umem.c	/^	uintptr_t abw_thread;$/;"	m	struct:allocdby_walk	file:
+abw_walk	umem.c	/^	const char *abw_walk;$/;"	m	struct:allocdby_walk	file:
+add_count	proc_kludges.c	/^static int add_count = 0;$/;"	v	file:
+addrcmp	umem.c	/^addrcmp(const void *lhs, const void *rhs)$/;"	f	file:
+allocdby	umem.c	/^allocdby(uintptr_t addr, uint_t flags, int argc, const mdb_arg_t *argv)$/;"	f
+allocdby_bufctl	umem.c	/^typedef struct allocdby_bufctl {$/;"	s	file:
+allocdby_bufctl_t	umem.c	/^} allocdby_bufctl_t;$/;"	t	file:
+allocdby_cmp	umem.c	/^allocdby_cmp(const allocdby_bufctl_t *lhs, const allocdby_bufctl_t *rhs)$/;"	f	file:
+allocdby_common	umem.c	/^allocdby_common(uintptr_t addr, uint_t flags, const char *w)$/;"	f	file:
+allocdby_walk	umem.c	/^allocdby_walk(uintptr_t addr, const umem_bufctl_audit_t *bcp, void *ignored)$/;"	f
+allocdby_walk	umem.c	/^typedef struct allocdby_walk {$/;"	s	file:
+allocdby_walk_bufctl	umem.c	/^allocdby_walk_bufctl(uintptr_t addr, const umem_bufctl_audit_t *bcp,$/;"	f
+allocdby_walk_cache	umem.c	/^allocdby_walk_cache(uintptr_t addr, const umem_cache_t *c, allocdby_walk_t *abw)$/;"	f
+allocdby_walk_fini	umem.c	/^allocdby_walk_fini(mdb_walk_state_t *wsp)$/;"	f
+allocdby_walk_init	umem.c	/^allocdby_walk_init(mdb_walk_state_t *wsp)$/;"	f
+allocdby_walk_init_common	umem.c	/^allocdby_walk_init_common(mdb_walk_state_t *wsp, const char *walk)$/;"	f	file:
+allocdby_walk_step	umem.c	/^allocdby_walk_step(mdb_walk_state_t *wsp)$/;"	f
+allocdby_walk_t	umem.c	/^} allocdby_walk_t;$/;"	t	file:
+bhc_argc	umem.c	/^	int		bhc_argc;$/;"	m	struct:bufctl_history_cb	file:
+bhc_argv	umem.c	/^	const mdb_arg_t	*bhc_argv;$/;"	m	struct:bufctl_history_cb	file:
+bhc_flags	umem.c	/^	int		bhc_flags;$/;"	m	struct:bufctl_history_cb	file:
+bhc_ret	umem.c	/^	int		bhc_ret;$/;"	m	struct:bufctl_history_cb	file:
+bhw_cache	umem.c	/^	umem_cache_t	*bhw_cache;$/;"	m	struct:bufctl_history_walk	file:
+bhw_next	umem.c	/^	void		*bhw_next;$/;"	m	struct:bufctl_history_walk	file:
+bhw_slab	umem.c	/^	umem_slab_t	*bhw_slab;$/;"	m	struct:bufctl_history_walk	file:
+bhw_timestamp	umem.c	/^	hrtime_t	bhw_timestamp;$/;"	m	struct:bufctl_history_walk	file:
+bm_bits	mdb/mdb_modapi.h	/^	u_longlong_t bm_bits;		\/* Result required for value & mask *\/$/;"	m	struct:mdb_bitmask
+bm_mask	mdb/mdb_modapi.h	/^	u_longlong_t bm_mask;		\/* Mask for bits *\/$/;"	m	struct:mdb_bitmask
+bm_name	mdb/mdb_modapi.h	/^	const char *bm_name;		\/* String name to print *\/$/;"	m	struct:mdb_bitmask
+bool	libproc.h	/^typedef int bool;$/;"	t
+boolean_t	port/port_types.h	/^typedef enum { _B_FALSE, _B_TRUE } boolean_t;$/;"	t
+bufctl	umem.c	/^bufctl(uintptr_t addr, uint_t flags, int argc, const mdb_arg_t *argv)$/;"	f
+bufctl_audit	umem.c	/^bufctl_audit(uintptr_t addr, uint_t flags, int argc, const mdb_arg_t *argv)$/;"	f
+bufctl_help	umem.c	/^bufctl_help(void)$/;"	f
+bufctl_history_callback	umem.c	/^bufctl_history_callback(uintptr_t addr, const void *ign, void *arg)$/;"	f	file:
+bufctl_history_cb	umem.c	/^typedef struct bufctl_history_cb {$/;"	s	file:
+bufctl_history_cb_t	umem.c	/^} bufctl_history_cb_t;$/;"	t	file:
+bufctl_history_walk	umem.c	/^typedef struct bufctl_history_walk {$/;"	s	file:
+bufctl_history_walk_fini	umem.c	/^bufctl_history_walk_fini(mdb_walk_state_t *wsp)$/;"	f
+bufctl_history_walk_init	umem.c	/^bufctl_history_walk_init(mdb_walk_state_t *wsp)$/;"	f
+bufctl_history_walk_step	umem.c	/^bufctl_history_walk_step(mdb_walk_state_t *wsp)$/;"	f
+bufctl_history_walk_t	umem.c	/^} bufctl_history_walk_t;$/;"	t	file:
+bufctl_walk_callback	umem.c	/^bufctl_walk_callback(umem_cache_t *cp, mdb_walk_state_t *wsp, uintptr_t buf)$/;"	f	file:
+bufctl_walk_init	umem.c	/^bufctl_walk_init(mdb_walk_state_t *wsp)$/;"	f
+bufctlcmp	umem.c	/^bufctlcmp(const umem_bufctl_audit_t **lhs, const umem_bufctl_audit_t **rhs)$/;"	f	file:
+c	Makefile	/^LINK.c=     $(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS)$/;"	m
+c	Makefile	/^LINK64.c=   $(CC) $(CFLAGS64) $(CPPFLAGS) $(LDFLAGS)$/;"	m
+cc	Makefile	/^LINK.cc=    $(CCC) $(CCFLAGS) $(CPPFLAGS) $(NORUNPATH) \\$/;"	m
+cc	Makefile	/^LINK64.cc=  $(CCC) $(CCFLAGS64) $(CPPFLAGS) $(NORUNPATH) \\$/;"	m
+dashes	libumem.c	/^	char	*dashes;$/;"	m	struct:datafmt	file:
+datafmt	libumem.c	/^typedef struct datafmt {$/;"	s	file:
+datafmt_t	libumem.c	/^} datafmt_t;$/;"	t	file:
+dc_descr	mdb/mdb_modapi.h	/^	const char *dc_descr;		\/* Description *\/$/;"	m	struct:mdb_dcmd
+dc_funcp	mdb/mdb_modapi.h	/^	mdb_dcmd_f *dc_funcp;		\/* Command function *\/$/;"	m	struct:mdb_dcmd
+dc_help	mdb/mdb_modapi.h	/^	void (*dc_help)(void);		\/* Command help function (or NULL) *\/$/;"	m	struct:mdb_dcmd
+dc_name	mdb/mdb_modapi.h	/^	const char *dc_name;		\/* Command name *\/$/;"	m	struct:mdb_dcmd
+dc_usage	mdb/mdb_modapi.h	/^	const char *dc_usage;		\/* Usage message (optional) *\/$/;"	m	struct:mdb_dcmd
+dcmds	libumem.c	/^static const mdb_dcmd_t dcmds[] = {$/;"	v	file:
+dprintf	misc.h	50;"	d
+dprintf_cont	misc.h	56;"	d
+false	libproc.h	95;"	d
+fmt	libumem.c	/^	char	*fmt;$/;"	m	struct:datafmt	file:
+freectl_walk_init	umem.c	/^freectl_walk_init(mdb_walk_state_t *wsp)$/;"	f
+freedby	umem.c	/^freedby(uintptr_t addr, uint_t flags, int argc, const mdb_arg_t *argv)$/;"	f
+freedby_walk_init	umem.c	/^freedby_walk_init(mdb_walk_state_t *wsp)$/;"	f
+freemem_walk_init	umem.c	/^freemem_walk_init(mdb_walk_state_t *wsp)$/;"	f
+get_umem_alloc_sizes	umem.c	/^get_umem_alloc_sizes(int **out, size_t *out_num)$/;"	f
+hdr1	libumem.c	/^	char	*hdr1;$/;"	m	struct:datafmt	file:
+hdr2	libumem.c	/^	char	*hdr2;$/;"	m	struct:datafmt	file:
+is_umem_sym	misc.c	/^is_umem_sym(const char *sym, const char *prefix)$/;"	f
+kgrep_subr	libumem.c	/^kgrep_subr(kgrep_cb_func *cb, void *cbdata)$/;"	f
+kgrep_subr_pagesize	libumem.c	/^kgrep_subr_pagesize(void)$/;"	f
+kv_addr	libumem.c	/^	uintptr_t kv_addr;$/;"	m	struct:umastat_vmem	file:
+kv_alloc	libumem.c	/^	int kv_alloc;$/;"	m	struct:umastat_vmem	file:
+kv_fail	libumem.c	/^	int kv_fail;$/;"	m	struct:umastat_vmem	file:
+kv_meminuse	libumem.c	/^	int kv_meminuse;$/;"	m	struct:umastat_vmem	file:
+kv_next	libumem.c	/^	struct umastat_vmem *kv_next;$/;"	m	struct:umastat_vmem	file:
+leak_brkbase	leaky_subr.c	/^static uintptr_t leak_brkbase;$/;"	v	file:
+leak_brksize	leaky_subr.c	/^static uintptr_t leak_brksize;$/;"	v	file:
+leak_bufctl	leaky_impl.h	/^typedef struct leak_bufctl {$/;"	s
+leak_bufctl_t	leaky_impl.h	/^} leak_bufctl_t;$/;"	t
+leak_mtab	leaky_impl.h	/^typedef struct leak_mtab {$/;"	s
+leak_mtab_t	leaky_impl.h	/^} leak_mtab_t;$/;"	t
+leak_pc_t	leaky_impl.h	/^typedef pc_t leak_pc_t;$/;"	t
+leak_pc_t	leaky_impl.h	/^typedef uintptr_t leak_pc_t;$/;"	t
+leaky_cache	leaky_subr.c	/^leaky_cache(uintptr_t addr, const umem_cache_t *c, leak_mtab_t **lmp)$/;"	f	file:
+leaky_count	leaky_subr.c	/^leaky_count(uintptr_t addr, void *unused, size_t *total)$/;"	f	file:
+leaky_estimate	leaky_subr.c	/^leaky_estimate(uintptr_t addr, const umem_cache_t *c, size_t *est)$/;"	f	file:
+leaky_estimate_vmem	leaky_subr.c	/^leaky_estimate_vmem(uintptr_t addr, const vmem_t *vmem, size_t *est)$/;"	f	file:
+leaky_grep_mappings	leaky_subr.c	/^leaky_grep_mappings(uintptr_t ignored, const prmap_t *pmp,$/;"	f	file:
+leaky_handle_anon_mappings	leaky_subr.c	/^leaky_handle_anon_mappings(leak_mtab_t **lmp)$/;"	f	file:
+leaky_handle_sbrk	leaky_subr.c	/^leaky_handle_sbrk(leaky_maps_t *lmp)$/;"	f	file:
+leaky_interested	leaky_subr.c	/^leaky_interested(const umem_cache_t *c)$/;"	f	file:
+leaky_mappings_header	leaky_subr.c	/^leaky_mappings_header(void)$/;"	f	file:
+leaky_maps	leaky_subr.c	/^typedef struct leaky_maps {$/;"	s	file:
+leaky_maps_t	leaky_subr.c	/^} leaky_maps_t;$/;"	t	file:
+leaky_mark_lwp	leaky_subr.c	/^leaky_mark_lwp(void *ignored, const lwpstatus_t *lwp)$/;"	f	file:
+leaky_mtab	leaky_subr.c	/^leaky_mtab(uintptr_t addr, const umem_bufctl_audit_t *bcp, leak_mtab_t **lmp)$/;"	f	file:
+leaky_mtab_addr	leaky_subr.c	/^leaky_mtab_addr(uintptr_t addr, void *ignored, leak_mtab_t **lmp)$/;"	f	file:
+leaky_process_anon_mappings	leaky_subr.c	/^leaky_process_anon_mappings(uintptr_t ignored, const prmap_t *pmp,$/;"	f	file:
+leaky_process_lwp	leaky_subr.c	/^leaky_process_lwp(void *ignored, const lwpstatus_t *lwp)$/;"	f	file:
+leaky_process_proc	leaky_subr.c	/^leaky_process_proc(void)$/;"	f	file:
+leaky_read_segs	leaky_subr.c	/^leaky_read_segs(uintptr_t addr, const vmem_seg_t *seg, leaky_maps_t *lmp)$/;"	f	file:
+leaky_seg	leaky_subr.c	/^leaky_seg(uintptr_t addr, const vmem_seg_t *seg, leak_mtab_t **lmp)$/;"	f	file:
+leaky_seg_cmp	leaky_subr.c	/^leaky_seg_cmp(const void *l, const void *r)$/;"	f	file:
+leaky_seg_info	leaky_subr.c	/^typedef struct leaky_seg_info {$/;"	s	file:
+leaky_seg_info_t	leaky_subr.c	/^} leaky_seg_info_t;$/;"	t	file:
+leaky_seg_search	leaky_subr.c	/^leaky_seg_search(uintptr_t addr, leaky_seg_info_t *listp, unsigned count)$/;"	f	file:
+leaky_subr_add_leak	leaky_subr.c	/^leaky_subr_add_leak(leak_mtab_t *lmp)$/;"	f
+leaky_subr_bufctl_cmp	leaky_subr.c	/^leaky_subr_bufctl_cmp(const leak_bufctl_t *lhs, const leak_bufctl_t *rhs)$/;"	f
+leaky_subr_caller	leaky_subr.c	/^leaky_subr_caller(const uintptr_t *stack, uint_t depth, char *buf,$/;"	f	file:
+leaky_subr_dump	leaky_subr.c	/^leaky_subr_dump(const leak_bufctl_t *lkb, int verbose)$/;"	f
+leaky_subr_dump_end	leaky_subr.c	/^leaky_subr_dump_end(int type)$/;"	f
+leaky_subr_dump_start	leaky_subr.c	/^leaky_subr_dump_start(int type)$/;"	f
+leaky_subr_estimate	leaky_subr.c	/^leaky_subr_estimate(size_t *estp)$/;"	f
+leaky_subr_fill	leaky_subr.c	/^leaky_subr_fill(leak_mtab_t **lmpp)$/;"	f
+leaky_subr_invoke_callback	leaky_subr.c	/^leaky_subr_invoke_callback(const leak_bufctl_t *lkb, mdb_walk_cb_t cb,$/;"	f
+leaky_subr_run	leaky_subr.c	/^leaky_subr_run(void)$/;"	f
+leaky_vmem	leaky_subr.c	/^leaky_vmem(uintptr_t addr, const vmem_t *vmem, leak_mtab_t **lmp)$/;"	f	file:
+lk_bytes	leaky_subr.c	/^static size_t lk_bytes;$/;"	v	file:
+lk_cache_seen	leaky_subr.c	/^static int lk_cache_seen;$/;"	v	file:
+lk_ttl	leaky_subr.c	/^static size_t lk_ttl;$/;"	v	file:
+lk_umem_seen	leaky_subr.c	/^static int lk_umem_seen;$/;"	v	file:
+lk_vmem_seen	leaky_subr.c	/^static int lk_vmem_seen;$/;"	v	file:
+lkb_addr	leaky_impl.h	/^	uintptr_t lkb_addr;			\/* should be unique *\/$/;"	m	struct:leak_bufctl
+lkb_bufaddr	leaky_impl.h	/^	uintptr_t lkb_bufaddr;$/;"	m	struct:leak_bufctl
+lkb_cid	leaky_impl.h	/^	uintptr_t lkb_cid;$/;"	m	struct:leak_bufctl
+lkb_data	leaky_impl.h	/^	uintptr_t lkb_data;$/;"	m	struct:leak_bufctl
+lkb_depth	leaky_impl.h	/^	uint8_t lkb_depth;$/;"	m	struct:leak_bufctl
+lkb_dups	leaky_impl.h	/^	int lkb_dups;$/;"	m	struct:leak_bufctl
+lkb_hash_next	leaky_impl.h	/^	struct leak_bufctl *lkb_hash_next;	\/* internal use only *\/$/;"	m	struct:leak_bufctl
+lkb_next	leaky_impl.h	/^	struct leak_bufctl *lkb_next;$/;"	m	struct:leak_bufctl
+lkb_stack	leaky_impl.h	/^	leak_pc_t lkb_stack[1];		\/* actually lkb_depth *\/$/;"	m	struct:leak_bufctl
+lkb_timestamp	leaky_impl.h	/^	hrtime_t lkb_timestamp;$/;"	m	struct:leak_bufctl
+lkb_type	leaky_impl.h	/^	uint8_t lkb_type;$/;"	m	struct:leak_bufctl
+lkm_base	leaky_impl.h	/^	uintptr_t lkm_base;$/;"	m	struct:leak_mtab
+lkm_bufctl	leaky_impl.h	/^	uintptr_t lkm_bufctl;			\/* target-defined *\/$/;"	m	struct:leak_mtab
+lkm_limit	leaky_impl.h	/^	uintptr_t lkm_limit;$/;"	m	struct:leak_mtab
+lm_lmp	leaky_subr.c	/^	leak_mtab_t		**lm_lmp;$/;"	m	struct:leaky_maps	file:
+lm_pstatus	leaky_subr.c	/^	pstatus_t		*lm_pstatus;$/;"	m	struct:leaky_maps	file:
+lm_seg_count	leaky_subr.c	/^	uintptr_t		lm_seg_count;$/;"	m	struct:leaky_maps	file:
+lm_seg_max	leaky_subr.c	/^	uintptr_t		lm_seg_max;$/;"	m	struct:leaky_maps	file:
+lm_segs	leaky_subr.c	/^	leaky_seg_info_t	*lm_segs;$/;"	m	struct:leaky_maps	file:
+ls_end	leaky_subr.c	/^	uintptr_t ls_end;$/;"	m	struct:leaky_seg_info	file:
+ls_start	leaky_subr.c	/^	uintptr_t ls_start;$/;"	m	struct:leaky_seg_info	file:
+malloc_data	umem.c	/^struct malloc_data {$/;"	s	file:
+malloc_size	umem.c	/^	uint32_t malloc_size;$/;"	m	struct:malloc_data	file:
+malloc_stat	umem.c	/^	uint32_t malloc_stat; \/* == UMEM_MALLOC_ENCODE(state, malloc_size) *\/$/;"	m	struct:malloc_data	file:
+map_fmt	leaky_subr.c	/^static char *map_fmt  = "[%?p,%?p) %-10s ";$/;"	v	file:
+map_head	leaky_subr.c	/^static char *map_head = "%-?s  %?s  %-10s used reason\\n";$/;"	v	file:
+mdb_arg	mdb/mdb_modapi.h	/^typedef struct mdb_arg {$/;"	s
+mdb_arg_t	mdb/mdb_modapi.h	/^} mdb_arg_t;$/;"	t
+mdb_bitmask	mdb/mdb_modapi.h	/^typedef struct mdb_bitmask {$/;"	s
+mdb_bitmask_t	mdb/mdb_modapi.h	/^} mdb_bitmask_t;$/;"	t
+mdb_callback_f	mdb/mdb_modapi.h	/^typedef void (*mdb_callback_f)(void *);$/;"	t
+mdb_dcmd	mdb/mdb_modapi.h	/^typedef struct mdb_dcmd {$/;"	s
+mdb_dcmd_f	mdb/mdb_modapi.h	/^typedef int mdb_dcmd_f(uintptr_t, uint_t, int, const mdb_arg_t *);$/;"	t
+mdb_dcmd_t	mdb/mdb_modapi.h	/^} mdb_dcmd_t;$/;"	t
+mdb_dump64_cb_t	mdb/mdb_modapi.h	/^typedef ssize_t (*mdb_dump64_cb_t)(void *, size_t, uint64_t, void *);$/;"	t
+mdb_dumpptr_cb_t	mdb/mdb_modapi.h	/^typedef ssize_t (*mdb_dumpptr_cb_t)(void *, size_t, uintptr_t, void *);$/;"	t
+mdb_modinfo	mdb/mdb_modapi.h	/^typedef struct mdb_modinfo {$/;"	s
+mdb_modinfo_t	mdb/mdb_modapi.h	/^} mdb_modinfo_t;$/;"	t
+mdb_object	mdb/mdb_modapi.h	/^typedef struct mdb_object {$/;"	s
+mdb_object_cb_t	mdb/mdb_modapi.h	/^typedef int (*mdb_object_cb_t)(mdb_object_t *, void *);$/;"	t
+mdb_object_t	mdb/mdb_modapi.h	/^} mdb_object_t;$/;"	t
+mdb_pipe	mdb/mdb_modapi.h	/^typedef struct mdb_pipe {$/;"	s
+mdb_pipe_t	mdb/mdb_modapi.h	/^} mdb_pipe_t;$/;"	t
+mdb_reg_t	mdb/mdb_modapi.h	/^typedef uint64_t mdb_reg_t;$/;"	t
+mdb_tid_t	mdb/mdb_modapi.h	/^typedef uintptr_t mdb_tid_t;$/;"	t
+mdb_type_t	mdb/mdb_modapi.h	/^} mdb_type_t;$/;"	t
+mdb_walk_cb_t	mdb/mdb_modapi.h	/^typedef int (*mdb_walk_cb_t)(uintptr_t, const void *, void *);$/;"	t
+mdb_walk_state	mdb/mdb_modapi.h	/^typedef struct mdb_walk_state {$/;"	s
+mdb_walk_state_t	mdb/mdb_modapi.h	/^} mdb_walk_state_t;$/;"	t
+mdb_walker	mdb/mdb_modapi.h	/^typedef struct mdb_walker {$/;"	s
+mdb_walker_t	mdb/mdb_modapi.h	/^} mdb_walker_t;$/;"	t
+memchr	mdb/mdb_modapi.h	/^	inline void *memchr(void * __s, int __c, size_t __n) {$/;"	f
+mi_dcmds	mdb/mdb_modapi.h	/^	const mdb_dcmd_t *mi_dcmds;	\/* NULL-terminated list of dcmds *\/$/;"	m	struct:mdb_modinfo
+mi_dvers	mdb/mdb_modapi.h	/^	ushort_t mi_dvers;		\/* Debugger version number *\/$/;"	m	struct:mdb_modinfo
+mi_walkers	mdb/mdb_modapi.h	/^	const mdb_walker_t *mi_walkers;	\/* NULL-terminated list of walks *\/$/;"	m	struct:mdb_modinfo
+modinfo	libumem.c	/^static const mdb_modinfo_t modinfo = {MDB_API_VERSION, dcmds, walkers};$/;"	v	file:
+obj_base	mdb/mdb_modapi.h	/^	uintptr_t obj_base;		\/* base address of object *\/$/;"	m	struct:mdb_object
+obj_fullname	mdb/mdb_modapi.h	/^	const char *obj_fullname;	\/* full name of object *\/$/;"	m	struct:mdb_object
+obj_name	mdb/mdb_modapi.h	/^	const char *obj_name;		\/* name of object *\/$/;"	m	struct:mdb_object
+obj_size	mdb/mdb_modapi.h	/^	uintptr_t obj_size;		\/* in memory size of object in bytes *\/$/;"	m	struct:mdb_object
+offsetof	misc.h	37;"	d
+pipe_data	mdb/mdb_modapi.h	/^	uintptr_t *pipe_data;		\/* Array of pipe values *\/$/;"	m	struct:mdb_pipe
+pipe_len	mdb/mdb_modapi.h	/^	size_t pipe_len;		\/* Array length *\/$/;"	m	struct:mdb_pipe
+pkm_Pr	proc_kludges.c	/^	struct ps_prochandle *pkm_Pr;$/;"	m	struct:prockuldge_mappings	file:
+pkm_count	proc_kludges.c	/^	uint_t pkm_count;$/;"	m	struct:prockuldge_mappings	file:
+pkm_idx	proc_kludges.c	/^	uint_t pkm_idx;$/;"	m	struct:prockuldge_mappings	file:
+pkm_mappings	proc_kludges.c	/^	prmap_t *pkm_mappings;$/;"	m	struct:prockuldge_mappings	file:
+pkm_max	proc_kludges.c	/^	uint_t pkm_max;$/;"	m	struct:prockuldge_mappings	file:
+pkm_old_mappings	proc_kludges.c	/^	prmap_t *pkm_old_mappings;$/;"	m	struct:prockuldge_mappings	file:
+pkm_old_max	proc_kludges.c	/^	uint_t pkm_old_max;$/;"	m	struct:prockuldge_mappings	file:
+prockludge_add_walkers	proc_kludges.c	/^prockludge_add_walkers(void)$/;"	f
+prockludge_mappings_iter	proc_kludges.c	/^prockludge_mappings_iter(prockludge_mappings_t *pkm, const prmap_t *pmp,$/;"	f	file:
+prockludge_mappings_t	proc_kludges.c	/^} prockludge_mappings_t;$/;"	t	file:
+prockludge_mappings_walk_fini	proc_kludges.c	/^prockludge_mappings_walk_fini(mdb_walk_state_t *wsp)$/;"	f
+prockludge_mappings_walk_init	proc_kludges.c	/^prockludge_mappings_walk_init(mdb_walk_state_t *mws)$/;"	f
+prockludge_mappings_walk_step	proc_kludges.c	/^prockludge_mappings_walk_step(mdb_walk_state_t *wsp)$/;"	f
+prockludge_remove_walkers	proc_kludges.c	/^prockludge_remove_walkers(void)$/;"	f
+prockuldge_mappings	proc_kludges.c	/^typedef struct prockuldge_mappings {$/;"	s	file:
+ps_err_e	proc_service.h	/^} ps_err_e;$/;"	t
+regs	libproc.h	/^unsigned long   regs[IA64_REG_COUNT];     \/* integer and fp regs *\/$/;"	m	struct:user_regs_struct
+showbc	umem.c	/^showbc(uintptr_t addr, const umem_bufctl_audit_t *bcp, hrtime_t *newest)$/;"	f	file:
+strchr	mdb/mdb_modapi.h	/^	inline char *strchr(char *__s, int __c) {$/;"	f
+strrchr	mdb/mdb_modapi.h	/^	inline char *strrchr(char *__s, int __c) {$/;"	f
+strstr	mdb/mdb_modapi.h	/^	inline char *strstr(char *__s1, const char *__s2) {$/;"	f
+true	libproc.h	94;"	d
+u_longlong_t	port/port_types.h	/^typedef unsigned long long  u_longlong_t;$/;"	t
+uchar_t	port/port_types.h	/^typedef unsigned uchar_t;$/;"	t
+ucw_cpus	umem.c	/^	umem_cpu_t *ucw_cpus;$/;"	m	file:
+ucw_current	umem.c	/^	uint32_t ucw_current;$/;"	m	file:
+ucw_current	umem.c	/^	uintptr_t ucw_current;$/;"	m	file:
+ucw_first	umem.c	/^	uintptr_t ucw_first;$/;"	m	file:
+ucw_max	umem.c	/^	uint32_t ucw_max;$/;"	m	file:
+udf_clear	umem.c	/^	uint_t		udf_clear;	\/* if 0, uses udf_flags *\/$/;"	m	struct:umem_debug_flags	file:
+udf_flags	umem.c	/^	uint_t		udf_flags;$/;"	m	struct:umem_debug_flags	file:
+udf_name	umem.c	/^	const char	*udf_name;$/;"	m	struct:umem_debug_flags	file:
+ug_cb	libumem.c	/^	kgrep_cb_func *ug_cb;$/;"	m	struct:ugrep_walk_data	file:
+ug_cbdata	libumem.c	/^	void *ug_cbdata;$/;"	m	struct:ugrep_walk_data	file:
+ugrep_mapping_cb	libumem.c	/^ugrep_mapping_cb(uintptr_t addr, const void *prm_arg, void *data)$/;"	f
+ugrep_walk_data	libumem.c	/^typedef struct ugrep_walk_data {$/;"	s	file:
+ugrep_walk_data_t	libumem.c	/^} ugrep_walk_data_t;$/;"	t	file:
+ulong_t	port/port_types.h	/^typedef unsigned long ulong_t;$/;"	t
+ulw_base	umem.c	/^	umem_bufctl_audit_t *ulw_base;$/;"	m	struct:umem_log_walk	file:
+ulw_lh	umem.c	/^	umem_log_header_t ulw_lh;$/;"	m	struct:umem_log_walk	file:
+ulw_maxndx	umem.c	/^	size_t ulw_maxndx;$/;"	m	struct:umem_log_walk	file:
+ulw_ndx	umem.c	/^	size_t ulw_ndx;$/;"	m	struct:umem_log_walk	file:
+ulw_size	umem.c	/^	size_t ulw_size;$/;"	m	struct:umem_log_walk	file:
+ulw_sorted	umem.c	/^	umem_bufctl_audit_t **ulw_sorted;$/;"	m	struct:umem_log_walk	file:
+um_bucket	umem.c	/^	uint_t *um_bucket;$/;"	m	struct:umem_malloc_info	file:
+um_cp	umem.c	/^	umem_cache_t *um_cp;$/;"	m	struct:umem_malloc_info	file:
+um_malloc	umem.c	/^	size_t um_malloc;	\/* malloc buffers *\/$/;"	m	struct:umem_malloc_info	file:
+um_malloc_overhead	umem.c	/^	size_t um_malloc_overhead; \/* sum of in-chunk overheads *\/$/;"	m	struct:umem_malloc_info	file:
+um_malloc_size	umem.c	/^	size_t um_malloc_size;	\/* sum of malloc buffer sizes *\/$/;"	m	struct:umem_malloc_info	file:
+um_total	umem.c	/^	size_t um_total;	\/* total allocated buffers *\/$/;"	m	struct:umem_malloc_info	file:
+um_umem_buffer_cb	umem.c	/^um_umem_buffer_cb(uintptr_t addr, void *buf, umem_malloc_info_t *ump)$/;"	f	file:
+um_umem_cache_cb	umem.c	/^um_umem_cache_cb(uintptr_t addr, umem_cache_t *cp, umem_malloc_info_t *ump)$/;"	f	file:
+umalog	umem.c	/^umalog(uintptr_t addr, uint_t flags, int argc, const mdb_arg_t *argv)$/;"	f
+umastat	libumem.c	/^umastat(uintptr_t addr, uint_t flags, int argc, const mdb_arg_t *argv)$/;"	f
+umastat_cache	libumem.c	/^umastat_cache(uintptr_t addr, const umem_cache_t *cp, umastat_vmem_t **kvp)$/;"	f	file:
+umastat_cpu_alloc	libumem.c	/^umastat_cpu_alloc(uintptr_t addr, const umem_cpu_cache_t *ccp, int *alloc)$/;"	f	file:
+umastat_cpu_avail	libumem.c	/^umastat_cpu_avail(uintptr_t addr, const umem_cpu_cache_t *ccp, int *avail)$/;"	f	file:
+umastat_slab_avail	libumem.c	/^umastat_slab_avail(uintptr_t addr, const umem_slab_t *sp, int *avail)$/;"	f	file:
+umastat_vmem	libumem.c	/^typedef struct umastat_vmem {$/;"	s	file:
+umastat_vmem	libumem.c	/^umastat_vmem(uintptr_t addr, const vmem_t *v, void *ignored)$/;"	f	file:
+umastat_vmem_t	libumem.c	/^} umastat_vmem_t;$/;"	t	file:
+umastat_vmem_totals	libumem.c	/^umastat_vmem_totals(uintptr_t addr, const vmem_t *v, umastat_vmem_t *kv)$/;"	f	file:
+umause1	umem.c	/^umause1(uintptr_t addr, const umem_bufctl_audit_t *bcp, umusers_t *umu)$/;"	f	file:
+umause2	umem.c	/^umause2(uintptr_t addr, const umem_bufctl_audit_t *bcp, umusers_t *umu)$/;"	f	file:
+umausers	umem.c	/^umausers(uintptr_t addr, uint_t flags, int argc, const mdb_arg_t *argv)$/;"	f
+umc_add	umem.c	/^umc_add(uintptr_t addr, const umem_cache_t *cp, umclist_t *umc)$/;"	f	file:
+umc_caches	umem.c	/^	uintptr_t *umc_caches;			\/* List of umem_cache_t addrs *\/$/;"	m	struct:umclist	file:
+umc_high	umem.c	/^	uintptr_t umc_high;$/;"	m	struct:umem_log_cpu	file:
+umc_low	umem.c	/^	uintptr_t umc_low;$/;"	m	struct:umem_log_cpu	file:
+umc_name	umem.c	/^	const char *umc_name;			\/* Name to match (or NULL) *\/$/;"	m	struct:umclist	file:
+umc_nelems	umem.c	/^	int umc_nelems;				\/* Num entries in umc_caches *\/$/;"	m	struct:umclist	file:
+umc_size	umem.c	/^	int umc_size;				\/* Size of umc_caches array *\/$/;"	m	struct:umclist	file:
+umclist	umem.c	/^typedef struct umclist {$/;"	s	file:
+umclist_t	umem.c	/^} umclist_t;$/;"	t	file:
+umem_abort_messages	umem.c	/^umem_abort_messages(void)$/;"	f
+umem_cache	umem.c	/^umem_cache(uintptr_t addr, uint_t flags, int ac, const mdb_arg_t *argv)$/;"	f
+umem_cache_walk_fini	umem.c	/^umem_cache_walk_fini(mdb_walk_state_t *wsp)$/;"	f
+umem_cache_walk_init	umem.c	/^umem_cache_walk_init(mdb_walk_state_t *wsp)$/;"	f
+umem_cache_walk_step	umem.c	/^umem_cache_walk_step(mdb_walk_state_t *wsp)$/;"	f
+umem_cache_walk_t	umem.c	/^} umem_cache_walk_t;$/;"	t	file:
+umem_cpu_cache_walk_init	umem.c	/^umem_cpu_cache_walk_init(mdb_walk_state_t *wsp)$/;"	f
+umem_cpu_cache_walk_step	umem.c	/^umem_cpu_cache_walk_step(mdb_walk_state_t *wsp)$/;"	f
+umem_cpu_walk_fini	umem.c	/^umem_cpu_walk_fini(mdb_walk_state_t *wsp)$/;"	f
+umem_cpu_walk_init	umem.c	/^umem_cpu_walk_init(mdb_walk_state_t *wsp)$/;"	f
+umem_cpu_walk_state_t	umem.c	/^} umem_cpu_walk_state_t;$/;"	t	file:
+umem_cpu_walk_step	umem.c	/^umem_cpu_walk_step(mdb_walk_state_t *wsp)$/;"	f
+umem_debug	misc.c	/^umem_debug(uintptr_t addr, uint_t flags, int argc, const mdb_arg_t *argv)$/;"	f
+umem_debug_flags	umem.c	/^typedef struct umem_debug_flags {$/;"	s	file:
+umem_debug_flags_t	umem.c	/^} umem_debug_flags_t;$/;"	t	file:
+umem_debug_level	misc.c	/^int umem_debug_level = 0;$/;"	v
+umem_estimate_allocated	umem.c	/^umem_estimate_allocated(uintptr_t addr, const umem_cache_t *cp)$/;"	f
+umem_estimate_slab	umem.c	/^umem_estimate_slab(uintptr_t addr, const umem_slab_t *sp, size_t *est)$/;"	f	file:
+umem_get_magsize	umem.c	/^umem_get_magsize(const umem_cache_t *cp)$/;"	f
+umem_hash_lookup	umem.c	/^umem_hash_lookup(umem_cache_t *cp, uintptr_t caddr, void *buf, uintptr_t *out)$/;"	f	file:
+umem_hash_walk	umem.c	/^typedef struct umem_hash_walk {$/;"	s	file:
+umem_hash_walk_fini	umem.c	/^umem_hash_walk_fini(mdb_walk_state_t *wsp)$/;"	f
+umem_hash_walk_init	umem.c	/^umem_hash_walk_init(mdb_walk_state_t *wsp)$/;"	f
+umem_hash_walk_step	umem.c	/^umem_hash_walk_step(mdb_walk_state_t *wsp)$/;"	f
+umem_hash_walk_t	umem.c	/^} umem_hash_walk_t;$/;"	t	file:
+umem_init	umem.c	/^umem_init(void)$/;"	f
+umem_init_walkers	umem.c	/^umem_init_walkers(uintptr_t addr, const umem_cache_t *c, void *ignored)$/;"	f	file:
+umem_is_standalone	misc.c	/^int umem_is_standalone = 0;$/;"	v
+umem_log	umem.c	/^umem_log(uintptr_t addr, uint_t flags, int argc, const mdb_arg_t *argv)$/;"	f
+umem_log_cpu	umem.c	/^typedef struct umem_log_cpu {$/;"	s	file:
+umem_log_cpu_t	umem.c	/^} umem_log_cpu_t;$/;"	t	file:
+umem_log_status	umem.c	/^umem_log_status(const char *name, umem_log_header_t *val)$/;"	f	file:
+umem_log_walk	umem.c	/^typedef struct umem_log_walk {$/;"	s	file:
+umem_log_walk	umem.c	/^umem_log_walk(uintptr_t addr, const umem_bufctl_audit_t *b, umem_log_cpu_t *umc)$/;"	f
+umem_log_walk_fini	umem.c	/^umem_log_walk_fini(mdb_walk_state_t *wsp)$/;"	f
+umem_log_walk_init	umem.c	/^umem_log_walk_init(mdb_walk_state_t *wsp)$/;"	f
+umem_log_walk_step	umem.c	/^umem_log_walk_step(mdb_walk_state_t *wsp)$/;"	f
+umem_log_walk_t	umem.c	/^} umem_log_walk_t;$/;"	t	file:
+umem_lookup_by_name	misc.c	/^umem_lookup_by_name(const char *name, GElf_Sym *sym)$/;"	f
+umem_malloc_dist	umem.c	/^umem_malloc_dist(uintptr_t addr, uint_t flags, int argc, const mdb_arg_t *argv)$/;"	f
+umem_malloc_dist_help	umem.c	/^umem_malloc_dist_help(void)$/;"	f
+umem_malloc_info	umem.c	/^typedef struct umem_malloc_info {$/;"	s	file:
+umem_malloc_info	umem.c	/^umem_malloc_info(uintptr_t addr, uint_t flags, int argc, const mdb_arg_t *argv)$/;"	f
+umem_malloc_info_help	umem.c	/^umem_malloc_info_help(void)$/;"	f
+umem_malloc_info_t	umem.c	/^} umem_malloc_info_t;$/;"	t	file:
+umem_malloc_print_dist	umem.c	/^umem_malloc_print_dist(uint_t *um_bucket, size_t minmalloc, size_t maxmalloc,$/;"	f	file:
+umem_max_ncpus	umem.c	/^static uint32_t umem_max_ncpus;$/;"	v	file:
+umem_pagesize	umem.c	/^size_t umem_pagesize;$/;"	v
+umem_read_magazines	umem.c	/^umem_read_magazines(umem_cache_t *cp, uintptr_t addr,$/;"	f
+umem_readvar	misc.c	/^umem_readvar(void *buf, const char *name)$/;"	f
+umem_ready	umem.c	/^int umem_ready;$/;"	v
+umem_set_standalone	misc.c	/^umem_set_standalone(void)$/;"	f
+umem_slab_walk_init	umem.c	/^umem_slab_walk_init(mdb_walk_state_t *wsp)$/;"	f
+umem_slab_walk_partial_init	umem.c	/^umem_slab_walk_partial_init(mdb_walk_state_t *wsp)$/;"	f
+umem_slab_walk_step	umem.c	/^umem_slab_walk_step(mdb_walk_state_t *wsp)$/;"	f
+umem_stack_depth	umem.c	/^uint32_t umem_stack_depth;$/;"	v
+umem_stack_depth_warned	umem.c	/^static int umem_stack_depth_warned;$/;"	v	file:
+umem_statechange_cb	umem.c	/^umem_statechange_cb(void *arg)$/;"	f	file:
+umem_status	umem.c	/^umem_status(uintptr_t addr, uint_t flags, int ac, const mdb_arg_t *argv)$/;"	f
+umem_status_flags	umem.c	/^umem_debug_flags_t umem_status_flags[] = {$/;"	v
+umem_update_variables	umem.c	/^umem_update_variables(void)$/;"	f
+umem_verify	umem.c	/^typedef struct umem_verify {$/;"	s	file:
+umem_verify	umem.c	/^umem_verify(uintptr_t addr, uint_t flags, int argc, const mdb_arg_t *argv)$/;"	f
+umem_verify_t	umem.c	/^} umem_verify_t;$/;"	t	file:
+umem_walk	umem.c	/^typedef struct umem_walk {$/;"	s	file:
+umem_walk_all	umem.c	/^umem_walk_all(uintptr_t addr, const umem_cache_t *c, mdb_walk_state_t *wsp)$/;"	f	file:
+umem_walk_callback	umem.c	/^umem_walk_callback(mdb_walk_state_t *wsp, uintptr_t buf)$/;"	f	file:
+umem_walk_fini	umem.c	/^umem_walk_fini(mdb_walk_state_t *wsp)$/;"	f
+umem_walk_init	umem.c	/^umem_walk_init(mdb_walk_state_t *wsp)$/;"	f
+umem_walk_init_common	umem.c	/^umem_walk_init_common(mdb_walk_state_t *wsp, int type)$/;"	f	file:
+umem_walk_step	umem.c	/^umem_walk_step(mdb_walk_state_t *wsp)$/;"	f
+umem_walk_t	umem.c	/^} umem_walk_t;$/;"	t	file:
+umemfmt	libumem.c	/^static datafmt_t umemfmt[] = {$/;"	v	file:
+umhw_cur	umem.c	/^	umem_bufctl_t umhw_cur;$/;"	m	struct:umem_hash_walk	file:
+umhw_nelems	umem.c	/^	size_t umhw_nelems;$/;"	m	struct:umem_hash_walk	file:
+umhw_pos	umem.c	/^	size_t umhw_pos;$/;"	m	struct:umem_hash_walk	file:
+umhw_table	umem.c	/^	uintptr_t *umhw_table;$/;"	m	struct:umem_hash_walk	file:
+umo_data_size	umem.c	/^	size_t umo_data_size;			\/* Size of each allocation *\/$/;"	m	struct:umowner	file:
+umo_depth	umem.c	/^	int umo_depth;				\/* Depth of stack trace *\/$/;"	m	struct:umowner	file:
+umo_head	umem.c	/^	struct umowner *umo_head;		\/* First hash elt in bucket *\/$/;"	m	struct:umowner	file:
+umo_next	umem.c	/^	struct umowner *umo_next;		\/* Next hash elt in chain *\/$/;"	m	struct:umowner	file:
+umo_num	umem.c	/^	uint_t umo_num;				\/* Number of allocations *\/$/;"	m	struct:umowner	file:
+umo_signature	umem.c	/^	size_t umo_signature;			\/* Hash table signature *\/$/;"	m	struct:umowner	file:
+umo_stack	umem.c	/^	uintptr_t *umo_stack;			\/* Stack trace *\/$/;"	m	struct:umowner	file:
+umo_total_size	umem.c	/^	size_t umo_total_size;			\/* Total bytes of allocation *\/$/;"	m	struct:umowner	file:
+umowner	umem.c	/^typedef struct umowner {$/;"	s	file:
+umowner_t	umem.c	/^} umowner_t;$/;"	t	file:
+umownercmp	umem.c	/^umownercmp(const void *lp, const void *rp)$/;"	f	file:
+umu_add	umem.c	/^umu_add(umusers_t *umu, const umem_bufctl_audit_t *bcp,$/;"	f	file:
+umu_cache	umem.c	/^	const umem_cache_t *umu_cache;		\/* Current umem cache *\/$/;"	m	struct:umusers	file:
+umu_hash	umem.c	/^	umowner_t *umu_hash;			\/* Hash table of owners *\/$/;"	m	struct:umusers	file:
+umu_nelems	umem.c	/^	int umu_nelems;				\/* Number of entries in use *\/$/;"	m	struct:umusers	file:
+umu_size	umem.c	/^	int umu_size;				\/* Total number of entries *\/$/;"	m	struct:umusers	file:
+umu_stacks	umem.c	/^	uintptr_t *umu_stacks;			\/* stacks for owners *\/$/;"	m	struct:umusers	file:
+umusers	umem.c	/^typedef struct umusers {$/;"	s	file:
+umusers_t	umem.c	/^} umusers_t;$/;"	t	file:
+umv_besilent	umem.c	/^	int umv_besilent;		\/* report actual corruption sites *\/$/;"	m	struct:umem_verify	file:
+umv_buf	umem.c	/^	uint64_t *umv_buf;		\/* buffer to read cache contents into *\/$/;"	m	struct:umem_verify	file:
+umv_cache	umem.c	/^	struct umem_cache umv_cache;	\/* the cache we're operating on *\/$/;"	m	struct:umem_verify	file:
+umv_corruption	umem.c	/^	int umv_corruption;		\/* > 0 if corruption found. *\/$/;"	m	struct:umem_verify	file:
+umv_size	umem.c	/^	size_t umv_size;		\/* number of bytes in umv_buf *\/$/;"	m	struct:umem_verify	file:
+umw_addr	umem.c	/^	int umw_addr;			\/* cache address *\/$/;"	m	struct:umem_walk	file:
+umw_count	umem.c	/^	size_t umw_count;$/;"	m	struct:umem_walk	file:
+umw_cp	umem.c	/^	umem_cache_t *umw_cp;$/;"	m	struct:umem_walk	file:
+umw_csize	umem.c	/^	size_t umw_csize;$/;"	m	struct:umem_walk	file:
+umw_maglist	umem.c	/^	void **umw_maglist;$/;"	m	struct:umem_walk	file:
+umw_max	umem.c	/^	size_t umw_max;$/;"	m	struct:umem_walk	file:
+umw_pos	umem.c	/^	size_t umw_pos;$/;"	m	struct:umem_walk	file:
+umw_type	umem.c	/^	int umw_type;$/;"	m	struct:umem_walk	file:
+umw_ubase	umem.c	/^	char *umw_ubase;	\/* buffer for slab data *\/$/;"	m	struct:umem_walk	file:
+umw_valid	umem.c	/^	char *umw_valid;	\/* to keep track of freed buffers *\/$/;"	m	struct:umem_walk	file:
+user_regs_struct	libproc.h	/^struct user_regs_struct {$/;"	s
+user_regs_struct	libproc.h	87;"	d
+ushort_t	port/port_types.h	/^typedef unsigned short ushort_t;$/;"	t
+verify_alloc	umem.c	/^verify_alloc(uintptr_t addr, const void *data, void *private)$/;"	f	file:
+verify_buftag	umem.c	/^verify_buftag(umem_buftag_t *btp, uintptr_t pat)$/;"	f	file:
+verify_free	umem.c	/^verify_free(uintptr_t addr, const void *data, void *private)$/;"	f	file:
+verify_pattern	umem.c	/^verify_pattern(uint64_t *buf_arg, size_t size, uint64_t pat)$/;"	f	file:
+vmem	umem.c	/^vmem(uintptr_t addr, uint_t flags, int argc, const mdb_arg_t *argv)$/;"	f
+vmem_alloc_walk_init	umem.c	/^vmem_alloc_walk_init(mdb_walk_state_t *wsp)$/;"	f
+vmem_free_walk_init	umem.c	/^vmem_free_walk_init(mdb_walk_state_t *wsp)$/;"	f
+vmem_node	umem.c	/^typedef struct vmem_node {$/;"	s	file:
+vmem_node_t	umem.c	/^} vmem_node_t;$/;"	t	file:
+vmem_postfix_walk_step	umem.c	/^vmem_postfix_walk_step(mdb_walk_state_t *wsp)$/;"	f
+vmem_seg	umem.c	/^vmem_seg(uintptr_t addr, uint_t flags, int argc, const mdb_arg_t *argv)$/;"	f
+vmem_seg_help	umem.c	/^vmem_seg_help(void)$/;"	f
+vmem_seg_walk	umem.c	/^typedef struct vmem_seg_walk {$/;"	s	file:
+vmem_seg_walk_common_init	umem.c	/^vmem_seg_walk_common_init(mdb_walk_state_t *wsp, uint8_t type, char *name)$/;"	f
+vmem_seg_walk_fini	umem.c	/^vmem_seg_walk_fini(mdb_walk_state_t *wsp)$/;"	f
+vmem_seg_walk_init	umem.c	/^vmem_seg_walk_init(mdb_walk_state_t *wsp)$/;"	f
+vmem_seg_walk_step	umem.c	/^vmem_seg_walk_step(mdb_walk_state_t *wsp)$/;"	f
+vmem_seg_walk_t	umem.c	/^} vmem_seg_walk_t;$/;"	t	file:
+vmem_span_walk_init	umem.c	/^vmem_span_walk_init(mdb_walk_state_t *wsp)$/;"	f
+vmem_walk	umem.c	/^typedef struct vmem_walk {$/;"	s	file:
+vmem_walk_fini	umem.c	/^vmem_walk_fini(mdb_walk_state_t *wsp)$/;"	f
+vmem_walk_init	umem.c	/^vmem_walk_init(mdb_walk_state_t *wsp)$/;"	f
+vmem_walk_step	umem.c	/^vmem_walk_step(mdb_walk_state_t *wsp)$/;"	f
+vmem_walk_t	umem.c	/^} vmem_walk_t;$/;"	t	file:
+vmemfmt	libumem.c	/^static datafmt_t vmemfmt[] = {$/;"	v	file:
+vn_addr	umem.c	/^	uintptr_t vn_addr;$/;"	m	struct:vmem_node	file:
+vn_children	umem.c	/^	struct vmem_node *vn_children;$/;"	m	struct:vmem_node	file:
+vn_marked	umem.c	/^	int vn_marked;$/;"	m	struct:vmem_node	file:
+vn_next	umem.c	/^	struct vmem_node *vn_next;$/;"	m	struct:vmem_node	file:
+vn_parent	umem.c	/^	struct vmem_node *vn_parent;$/;"	m	struct:vmem_node	file:
+vn_sibling	umem.c	/^	struct vmem_node *vn_sibling;$/;"	m	struct:vmem_node	file:
+vn_vmem	umem.c	/^	vmem_t vn_vmem;$/;"	m	struct:vmem_node	file:
+vsw_current	umem.c	/^	uintptr_t vsw_current;$/;"	m	struct:vmem_seg_walk	file:
+vsw_start	umem.c	/^	uintptr_t vsw_start;$/;"	m	struct:vmem_seg_walk	file:
+vsw_type	umem.c	/^	uint8_t vsw_type;$/;"	m	struct:vmem_seg_walk	file:
+vw_current	umem.c	/^	vmem_node_t *vw_current;$/;"	m	struct:vmem_walk	file:
+vw_root	umem.c	/^	vmem_node_t *vw_root;$/;"	m	struct:vmem_walk	file:
+walk_addr	mdb/mdb_modapi.h	/^	uintptr_t walk_addr;		\/* Current address *\/$/;"	m	struct:mdb_walk_state
+walk_arg	mdb/mdb_modapi.h	/^	void *walk_arg;			\/* Walk private argument *\/$/;"	m	struct:mdb_walk_state
+walk_callback	mdb/mdb_modapi.h	/^	mdb_walk_cb_t walk_callback;	\/* Callback to issue *\/$/;"	m	struct:mdb_walk_state
+walk_cbdata	mdb/mdb_modapi.h	/^	void *walk_cbdata;		\/* Callback private data *\/$/;"	m	struct:mdb_walk_state
+walk_data	mdb/mdb_modapi.h	/^	void *walk_data;		\/* Walk private data *\/$/;"	m	struct:mdb_walk_state
+walk_descr	mdb/mdb_modapi.h	/^	const char *walk_descr;		\/* Walk description *\/$/;"	m	struct:mdb_walker
+walk_fini	mdb/mdb_modapi.h	/^	void (*walk_fini)(mdb_walk_state_t *);	\/* Walk destructor *\/$/;"	m	struct:mdb_walker
+walk_init	mdb/mdb_modapi.h	/^	int (*walk_init)(mdb_walk_state_t *);	\/* Walk constructor *\/$/;"	m	struct:mdb_walker
+walk_init_arg	mdb/mdb_modapi.h	/^	void *walk_init_arg;		\/* Walk constructor argument *\/$/;"	m	struct:mdb_walker
+walk_layer	mdb/mdb_modapi.h	/^	const void *walk_layer;		\/* Data from underlying layer *\/$/;"	m	struct:mdb_walk_state
+walk_name	mdb/mdb_modapi.h	/^	const char *walk_name;		\/* Walk type name *\/$/;"	m	struct:mdb_walker
+walk_step	mdb/mdb_modapi.h	/^	int (*walk_step)(mdb_walk_state_t *);	\/* Walk iterator *\/$/;"	m	struct:mdb_walker
+walkers	libumem.c	/^static const mdb_walker_t walkers[] = {$/;"	v	file:
+whatis_call_printer	umem.c	/^whatis_call_printer(mdb_dcmd_f *dcmd, uintptr_t addr)$/;"	f	file:
+whatis_info	umem.c	/^typedef struct whatis_info {$/;"	s	file:
+whatis_info_t	umem.c	/^} whatis_info_t;$/;"	t	file:
+whatis_print_umem	umem.c	/^whatis_print_umem(whatis_info_t *wi, uintptr_t maddr, uintptr_t addr,$/;"	f	file:
+whatis_run_umem	umem.c	/^whatis_run_umem(mdb_whatis_t *w, void *ignored)$/;"	f	file:
+whatis_run_vmem	umem.c	/^whatis_run_vmem(mdb_whatis_t *w, void *ignored)$/;"	f	file:
+whatis_walk_bufctl	umem.c	/^whatis_walk_bufctl(uintptr_t baddr, const umem_bufctl_t *bcp, whatis_info_t *wi)$/;"	f	file:
+whatis_walk_cache	umem.c	/^whatis_walk_cache(uintptr_t addr, const umem_cache_t *c, whatis_info_t *wi)$/;"	f	file:
+whatis_walk_metadata	umem.c	/^whatis_walk_metadata(uintptr_t addr, const umem_cache_t *c, whatis_info_t *wi)$/;"	f	file:
+whatis_walk_notouch	umem.c	/^whatis_walk_notouch(uintptr_t addr, const umem_cache_t *c, whatis_info_t *wi)$/;"	f	file:
+whatis_walk_seg	umem.c	/^whatis_walk_seg(uintptr_t addr, const vmem_seg_t *vs, whatis_info_t *wi)$/;"	f	file:
+whatis_walk_slab	umem.c	/^whatis_walk_slab(uintptr_t saddr, const umem_slab_t *sp, whatis_info_t *wi)$/;"	f	file:
+whatis_walk_touch	umem.c	/^whatis_walk_touch(uintptr_t addr, const umem_cache_t *c, whatis_info_t *wi)$/;"	f	file:
+whatis_walk_umem	umem.c	/^whatis_walk_umem(uintptr_t addr, void *ignored, whatis_info_t *wi)$/;"	f	file:
+whatis_walk_vmem	umem.c	/^whatis_walk_vmem(uintptr_t addr, const vmem_t *vmem, whatis_info_t *wi)$/;"	f	file:
+wi_cache	umem.c	/^	const umem_cache_t *wi_cache;$/;"	m	struct:whatis_info	file:
+wi_freemem	umem.c	/^	uint_t wi_freemem;$/;"	m	struct:whatis_info	file:
+wi_msb_arena	umem.c	/^	vmem_t *wi_msb_arena;$/;"	m	struct:whatis_info	file:
+wi_slab_found	umem.c	/^	int wi_slab_found;$/;"	m	struct:whatis_info	file:
+wi_slab_size	umem.c	/^	size_t wi_slab_size;$/;"	m	struct:whatis_info	file:
+wi_vmem	umem.c	/^	const vmem_t *wi_vmem;$/;"	m	struct:whatis_info	file:
+wi_w	umem.c	/^	mdb_whatis_t *wi_w;$/;"	m	struct:whatis_info	file:
+y	Makefile	/^YACC.y=yacc$/;"	m
