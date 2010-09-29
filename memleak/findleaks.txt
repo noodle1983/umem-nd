@@ -1,0 +1,13 @@
+info address umem_null_cache
+Symbol "umem_null_cache" is static storage at address 0xb7f80e20.
+
+(gdb) print ((umem_cache_t*)0xb7f80e20)->cache_next
+$1 = (umem_cache_t *) 0xb7f80e20
+
+
+(gdb) info address vmem_list
+Symbol "vmem_list" is static storage at address 0xb7f89d04.
+
+
+(gdb) print ((vmem_t*)0xb7f89d04)->vm_next  
+$7 = (vmem_t *) 0x0
