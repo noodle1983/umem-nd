@@ -22,8 +22,8 @@ my $core_file = shift | "core";
 
 #global attribute
 my $selector = IO::Select->new();
-my $gdb_cmd = "gdb $exec_name $core_file";
-my $GDB_PROMT = "(gdb)";
+my $gdb_cmd = "gdb --interpreter=mi -q $exec_name $core_file";
+my $GDB_PROMT = "\\(gdb\\)";
 my @res;
 
 my $GDB_OUT = gensym();
@@ -33,17 +33,23 @@ my $GDB_ERR = gensym();
 #a pipe to gdb and ignore the promt messages.
 eval{ my $gdb_pid = open3 ($GDB_IN, $GDB_OUT, $GDB_ERR, "$gdb_cmd");};
 $selector->add($GDB_OUT);
-getOutputFrom();
+sleep 1;
+getOutputFrom(-1);
+doGdbCmd("-stack-info-frame");
 
+#func test
+#print doGdbCmd("-data-evaluate-expression \"umem_null_cache.cache_next\"", $DEBUG_GDBCMD) . "\n";
+#print getAddrBySymbol("&umem_null_cache") . "\n";
+#print getAttribByAddr("(umem_cache_t*)", "0xb7fd0e20", "cache_next") . "\n";
 my $total_size = 0;
-#walk_umem_cache(leaky_estimate, \$total_size);
+walk_umem_cache(leaky_estimate, \$total_size);
 #walk_vmem(callback_walk_vmem_test, \$total_size);
 
 my @ltab;
-leaky_subr_fill(\@ltab, 0x10);
+#leaky_subr_fill(\@ltab, 0x10);
 #walk_vmem_alloc( leaky_seg,	"0xb7f29280", \@ltab);
 
-print doGdbCmd("quit");
+doGdbCmd("-gdb-exit");
 close $GDB_OUT;
 close $GDB_IN;
 waitpid($gdb_pid, 0);
@@ -71,8 +77,7 @@ sub leaky_vmem
 	my $debug = shift || $global_debug;
 	print "[leaky_vmem]\n" if ($debug & $DEBUG_FUN);
 
-	my $vm_name = 
-		getAttribByAddr("(vmem_t*)", "$cache_addr", "vm_name", $debug);
+	my $vm_name = getAttribByAddr("(vmem_t*)", "$cache_addr", "vm_name", $debug);
 	die "[leaky_vmem] fatal error: ((vmem_t*)$cache_addr)->vm_name is empty:[$vm_name]" 
 		if $vm_name =~ m/^\s*$/;
 
@@ -95,8 +100,7 @@ sub leaky_seg{
 	my $vm_addr = $vstype_vmaddr_data->[1];
 	my $data = $vstype_vmaddr_data->[2];
 
-	my ($type, $seg_vs_type) = 
-		getAttribByAddr("(vmem_seg_t *)", "$seg_addr", "vs_type");
+	my $seg_vs_type = getAttribByAddr("(vmem_seg_t *)", "$seg_addr", "vs_type");
 
 	if ($seg_vs_type ne "0" && $seg_vs_type ne "$vs_type")
 	{
@@ -105,10 +109,8 @@ sub leaky_seg{
 		return undef;
 	}
 
-	my ($type, $seg_vs_start) = 
-		getAttribByAddr("(vmem_seg_t *)", "$seg_addr", "vs_start");
-	my ($type, $seg_vs_end) = 
-		getAttribByAddr("(vmem_seg_t *)", "$seg_addr", "vs_end");
+	my $seg_vs_start = getAttribByAddr("(vmem_seg_t *)", "$seg_addr", "vs_start");
+	my $seg_vs_end = getAttribByAddr("(vmem_seg_t *)", "$seg_addr", "vs_end");
 	
 	my $lkm_ctl_addr = hex(substr $seg_addr, 2);
 	$lkm_ctl_addr = (($lkm_ctl_addr & ~3) | 1);
@@ -130,8 +132,7 @@ sub leaky_cache
 		return undef;
 	}
 
-	my ($type, $cache_flags) = 
-		getAttribByAddr("(umem_cache_t *)", "$cache_addr", "cache_flags", $debug);
+	my $cache_flags = getAttribByAddr("(umem_cache_t *)", "$cache_addr", "cache_flags", $debug);
 
 	my $audit = $cache_flags & 0x1;
 	if ($audit)
@@ -200,7 +201,7 @@ sub callback_vs_test{
 	my $vm_addr = $vstype_vmaddr_data->[1];
 	my $data = $vstype_vmaddr_data->[2];
 
-	my ($type, $value) = getAttribByAddr("(vmem_seg_t *)", "$seg_addr", "vs_type");
+	my $value = getAttribByAddr("(vmem_seg_t *)", "$seg_addr", "vs_type");
 
 	print "seg_addr:$seg_addr, wvs_type:$vs_type, svs_type:$value, data:$data\n";
 
@@ -220,10 +221,10 @@ sub leaky_interested{
 	my $cache_addr = shift;
 	my $debug = shift ||$global_debug;
 
-	my ($vmem_type, $vmem_value) = 
+	my $vmem_value = 
 		getAttribByAddr("(umem_cache_t*)", "$cache_addr", "cache_arena");
 
-	die "[leaky_estimate] fatal error: cannot read arena for cache $cache_addr" 
+	die "[leaky_interested] fatal error: cannot read arena for cache $cache_addr" 
 		if (not $vmem_value) ;
 	if ($vmem_value eq "0x0")
 	{
@@ -231,9 +232,9 @@ sub leaky_interested{
 		return 0;
 	}
 
-	my ($type, $vm_name) =
+	my $vm_name =
 		getAttribByAddr("$vmem_type", "$vmem_value", "vm_name", 0);	
-	die "[leaky_estimate] fatal error: vm_name is empty" 
+	die "[leaky_interested] fatal error: vm_name is empty" 
 		if $vm_name =~ m/^\s*$/;
 
 	if ($vm_name ne "umem_default" 
@@ -252,15 +253,13 @@ sub leaky_estimate
 	my $data = shift;
 	my $debug = shift ||$global_debug;
 	
-	my ($vmem_type, $vmem_value) = 
-		getAttribByAddr("(umem_cache_t*)", "$cache_addr", "cache_arena");
+	my $vmem_value = getAttribByAddr("(umem_cache_t*)", "$cache_addr", "cache_arena");
 
 	die "[leaky_estimate] fatal error: cannot read arena for cache $cache_addr" 
 		if (not $vmem_value) ;
 	return undef if $vmem_value eq "0x0"; 
 
-	my ($type, $vm_name) =
-		getAttribByAddr("$vmem_type", "$vmem_value", "vm_name", 0);	
+	my $vm_name = getAttribByAddr("(vmem_t *)", "$vmem_value", "vm_name", 0);	
 	die "[leaky_estimate] fatal error: vm_name is empty" 
 		if $vm_name =~ m/^\s*$/;
 
@@ -279,44 +278,26 @@ sub leaky_estimate
 sub doGdbCmd{
 	my $cmd = shift;
 	my $debug = shift || $global_debug;
-	#print "$cmd\n";
+
 	print $GDB_IN "$cmd\n";
 	my @res = getOutputFrom($debug);
-
 	if ($debug & $DEBUG_GDBCMD)
 	{
 		print "="x60 . "\n";
 		print "-"x60 . "\n";
-		print "$GDB_PROMT $cmd\n";
+		print "cmd:$cmd\n";
 		for (@res){print "$_\n";};
 		print "-"x60 . "\n";
 		print "="x60 . "\n";
 	}
 
-	#sometimes gdb just return nothing, I don't know why
-	#a bug in gdb?
-	#retry
-	my $retry_time = 3;
-	while ($cmd =~ m/print/ and $res[0] =~ m/^\s*$/ and $retry_time-- > 0)
-	{
-		sleep 1;
-		print $GDB_IN "$cmd\n";
-		@res = getOutputFrom($debug);
-		if ($debug & $DEBUG_GDBCMD)
-		{
-			print "="x60 . "\n";
-			print "-"x60 . "\n";
-			print "$GDB_PROMT $cmd(retry)\n";
-			for (@res){print "$_\n";};
-			print "-"x60 . "\n";
-			print "="x60 . "\n";
-		}
-	}
-
 	die "[doGdbCmd] fatal error: empty response from gdb of cmd: $cmd\n" 
 		if not @res and not $cmd =~ m/quit/i;
-
-	return @res;
+	die "[doGdbCmd] fatal error: only 1 line is expected for mi interface!\ncmd:$cmd\nans:@res\n" 
+		if @res > 1;
+	die "[doGdbCmd]cmd error!\ncmd:$cmd\nans:@res\n" 
+		if $res[0] =~ /^^done/;
+	return $res[0];
 }
 
 #---------------------------------------------------------------
@@ -336,15 +317,13 @@ sub getOutputFrom
 			$empty_count++;
 			if ($empty_count > 100)
 			{
-				print "[getOutputFrom] no ouput message for ${$empty_count*0.1;}s.\n"
+				die "[getOutputFrom] no ouput message for 10s. or promt not found.\n"
 					if ($debug & $DEBUG_GDBRSP);
-				last;
 			}
 			next;
 		}
-
-		$offset = sysread $ready[0], $lines, 256, $offset;
-		if ($offset == 0)
+		
+		if( not sysread($ready[0], $lines, 256, $offset))
 		{
 			print "[getOutputFrom] read nothing, gdb may quit. \n"
 				if ($debug & $DEBUG_GDBRSP);
@@ -353,13 +332,15 @@ sub getOutputFrom
 
 		while ( $lines =~ m|(.*?)\n|g)
 		{
-			push @result, $1;
+			my $line = $1;
+			last if $line =~ /^$GDB_PROMT/;
+			push @result, $line;
 			$offset = pos($lines);
 		}
 		$lines = substr $lines, $offset;
 		$offset = length($lines);
 
-		last if $lines =~ m/^\(gdb\)/;
+		last if $lines =~ m/^$GDB_PROMT/;
 	}
 	return @result;
 
@@ -398,10 +379,10 @@ sub getNextCache
 	my $debug = shift ||$global_debug;
 
 	print "[getNextCache]($cache_type $current)->$next_attrib\n" if ($debug & $DEBUG_FUN);
-    my ($type, $value) = 
+    my $next_addr = 
 		getAttribByAddr("$cache_type", "$current", "$next_attrib", $debug);	
 	#print "type:$type value:$value\n";
-	return $value;
+	return $next_addr;
 
 }
 #---------------------------------------------------------------
@@ -412,37 +393,21 @@ sub getAttribByAddr
 	my $addr = shift;
 	my $attr_name = shift;
 	my $debug = shift || $global_debug;
-	our %addr_name_cache;
+	my $value;
 
-	if (defined $addr_name_cache{"$addr.$attr_name"})
+	my @res = doGdbCmd("-data-evaluate-expression \"($type $addr)->$attr_name\"", $debug);
+	if ($res[0] =~ m/^\^done,value=\"(.*)\"/ )
 	{
-		my $rtype = $addr_name_cache{"$addr.$attr_name"}->[0];
-		my $rvalue = $addr_name_cache{"$addr.$attr_name"}->[1];
-		print "[getAttribByAddr] from cache ($rtype, $rvalue).\n"
-			if ($debug & $DEBUG_CACHE);
-		return ($rtype, $rvalue);
+		$value = $1;
 	}
 
-	my @res = doGdbCmd("print ($type $addr)->$attr_name", $debug);
-
-	if ($res[0] =~ m/^\$.* = (\(.+?\)) (0x\w+)$/ )
-	{
-		$addr_name_cache{"$addr.$attr_name"} = [$1, $2];
-		return ($1, $2);
-	}
 	#string
-	if ($res[0] =~ m/^\$.* = "(\S+)"/ )
+	if ($value =~ m/^\\\"(.*)\\\",/) 
 	{
-		$addr_name_cache{"$addr.$attr_name"} = [undef, $1];
-		return (undef, $1);
+		$value = $1;
 	}
-	#hex integer
-	if ($res[0] =~ m/^\$.* = (\d+)( '.*'\s*$)?/ )
-	{
-		$addr_name_cache{"$addr.$attr_name"} = [undef, $1];
-		return (undef, $1);
-	}
-	return undef;
+
+	return $value;
 
 }
 #---------------------------------------------------------------
@@ -451,12 +416,11 @@ sub getAddrByCmd{
 	my $debug = shift||$global_debug;
 
 	my @res = doGdbCmd("$cmd", $debug);
-	if ($res[0] =~ m/^\$.* = (.+?) (\w+)$/ )
+	if ($res[0] =~ m/^\^done,value=\"(.*)\"/ )
 	{
-		return ($1, $2);
+		return $1;
 	}
 	return undef;
-
 
 }
 #---------------------------------------------------------------
@@ -465,15 +429,11 @@ sub getAddrBySymbol
 	my $name = shift; 
 	my $debug = shift||$global_debug;
 
-	my @res = doGdbCmd("print $name", $debug);	
-	if ($res[0] =~ m/^\$.* = (\(.+?\)) (0x\w+)$/ )
+	my @res = doGdbCmd("-data-evaluate-expression \"$name\"", $debug);	
+	if ($res[0] =~ m/^\^done,value=\"(.*)\"/ )
 	{
-		return $2;
+		return $1;
 	}
-	#if ($addr[0] =~ m/^.* (\w*)\.\s*$/)
-	#{
-	#	return $1;
-	#}
 	return undef;
 }
 
