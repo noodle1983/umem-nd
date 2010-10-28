@@ -14,6 +14,7 @@ my $DEBUG_FILL = 0x10;
 my $DEBUG_IGNORE = 0x20;
 my $DEBUG_FUN = 0x40;
 
+my $DEBUG_LOGIC = $DEBUG_FILL | $DEBUG_IGNORE ;
 my $global_debug = 0;
 
 #console parameter
@@ -41,12 +42,12 @@ doGdbCmd("-stack-info-frame");
 #print doGdbCmd("-data-evaluate-expression \"umem_null_cache.cache_next\"", $DEBUG_GDBCMD) . "\n";
 #print getAddrBySymbol("&umem_null_cache") . "\n";
 #print getAttribByAddr("(umem_cache_t*)", "0xb7fd0e20", "cache_next") . "\n";
-my $total_size = 0;
-walk_umem_cache(leaky_estimate, \$total_size);
+#my $total_size = 0;
+#walk_umem_cache(leaky_estimate, \$total_size);
 #walk_vmem(callback_walk_vmem_test, \$total_size);
 
 my @ltab;
-#leaky_subr_fill(\@ltab, 0x10);
+leaky_subr_fill(\@ltab, $DEBUG_LOGIC);
 #walk_vmem_alloc( leaky_seg,	"0xb7f29280", \@ltab);
 
 doGdbCmd("-gdb-exit");
@@ -95,6 +96,7 @@ sub leaky_seg{
 	my $seg_addr = shift;
 	my $vstype_vmaddr_data = shift;
 	my $debug = shift ||$global_debug;
+	print "[leaky_seg]\n" if ($debug & $DEBUG_FUN);
 
 	my $vs_type = $vstype_vmaddr_data->[0];
 	my $vm_addr = $vstype_vmaddr_data->[1];
@@ -112,13 +114,30 @@ sub leaky_seg{
 	my $seg_vs_start = getAttribByAddr("(vmem_seg_t *)", "$seg_addr", "vs_start");
 	my $seg_vs_end = getAttribByAddr("(vmem_seg_t *)", "$seg_addr", "vs_end");
 	
-	my $lkm_ctl_addr = hex(substr $seg_addr, 2);
-	$lkm_ctl_addr = (($lkm_ctl_addr & ~3) | 1);
-	$lkm_ctl_addr = sprintf "0x%x", $lkm_ctl_addr;
+	#my $lkm_ctl_addr = hex(substr $seg_addr, 2);
+	#$lkm_ctl_addr = (($lkm_ctl_addr & ~3) | 1);
+	#$lkm_ctl_addr = sprintf "0x%x", $lkm_ctl_addr;
+	
+	#mark it LKM_CTL_VMSEG(1)
+	my $lkm_ctl_addr = LKM_CTL($seg_addr, 1);
 
 	print "[leaky_seg]start:$seg_vs_start, end:$seg_vs_end, addr:$lkm_ctl_addr, ((vmem_seg_t*)$seg_addr)\n" if $debug & $DEBUG_FILL;
 	push @$data, [$seg_vs_start, $seg_vs_end, $lkm_ctl_addr];
+}
+#---------------------------------------------------------------
+##define	LKM_CTL_BUFCTL	0	/* normal allocation, PTR is bufctl */
+##define	LKM_CTL_VMSEG	1	/* oversize allocation, PTR is vmem_seg_t */
+##define	LKM_CTL_MEMORY	2	/* non-umem mmap or brk, PTR is region start */
+##define	LKM_CTL_CACHE	3	/* normal alloc, non-debug, PTR is cache */
+##define	LKM_CTL_MASK	3L
+sub LKM_CTL{
+	my $addr = shift;
+	my $type = shift;
 
+	my $lkm_ctl_addr = hex(substr $addr, 2);
+	$lkm_ctl_addr = (($lkm_ctl_addr & ~3) | $type);
+	$lkm_ctl_addr = sprintf "0x%x", $lkm_ctl_addr;
+	return $lkm_ctl_addr;
 }
 #---------------------------------------------------------------
 sub leaky_cache
@@ -180,15 +199,32 @@ sub walk_vmem_alloc{
 
 }
 #---------------------------------------------------------------
+sub walk_umem_bufctl{
+	my $callback = shift;	
+	my $umem_addr = shift;
+	my $data = shift;
+	my $debug = shift ||$global_debug;
+	print "[walk_umem_bufctl]\n" if ($debug & $DEBUG_FUN);
+
+	#for bufctl, $type = UM_ALLOCATED(0x1) | UM_BUFCTL(0x4)
+	my $type = 5;
+	#$type = $type & ~UMF_HASH(0x8)
+	#cache_buftotal = 0, done.
+	
+	#walk type contain UM_BUFCTL(0x4), but cache_flags without UMF_HASH(0x8), done
+
+
+}
+#---------------------------------------------------------------
 sub walk_vmem_seg{
 	my $callback = shift;	
 	my $vstype_vmaddr_data = shift;
 	my $vm_addr = $vstype_vmaddr_data->[1];
 	my $debug = shift ||$global_debug;
+	print "[walk_vmem_seg]\n" if ($debug & $DEBUG_FUN);
 
-	my ($addr_type, $addr_of_vs_header) = 
-		getAddrByCmd("print &((vmem_t*)$vm_addr)->vm_seg0");
-	walk("$addr_type", "vmem_seg", "vs_anext", 
+	my $addr_of_vs_header = getAddrByCmd("-data-evaluate-expression \"&((vmem_t*)$vm_addr)->vm_seg0\"");
+	walk("(vmem_seg_t*)", "vmem_seg", "vs_anext", 
 		$callback, $vstype_vmaddr_data, $addr_of_vs_header, $debug);
 }
 
@@ -221,8 +257,7 @@ sub leaky_interested{
 	my $cache_addr = shift;
 	my $debug = shift ||$global_debug;
 
-	my $vmem_value = 
-		getAttribByAddr("(umem_cache_t*)", "$cache_addr", "cache_arena");
+	my $vmem_value = getAttribByAddr("(umem_cache_t*)", "$cache_addr", "cache_arena");
 
 	die "[leaky_interested] fatal error: cannot read arena for cache $cache_addr" 
 		if (not $vmem_value) ;
@@ -232,8 +267,7 @@ sub leaky_interested{
 		return 0;
 	}
 
-	my $vm_name =
-		getAttribByAddr("$vmem_type", "$vmem_value", "vm_name", 0);	
+	my $vm_name = getAttribByAddr("(vmem_t*)", "$vmem_value", "vm_name", 0);	
 	die "[leaky_interested] fatal error: vm_name is empty" 
 		if $vm_name =~ m/^\s*$/;
 
@@ -379,8 +413,7 @@ sub getNextCache
 	my $debug = shift ||$global_debug;
 
 	print "[getNextCache]($cache_type $current)->$next_attrib\n" if ($debug & $DEBUG_FUN);
-    my $next_addr = 
-		getAttribByAddr("$cache_type", "$current", "$next_attrib", $debug);	
+    my $next_addr = getAttribByAddr("$cache_type", "$current", "$next_attrib", $debug);	
 	#print "type:$type value:$value\n";
 	return $next_addr;
 
@@ -403,6 +436,11 @@ sub getAttribByAddr
 
 	#string
 	if ($value =~ m/^\\\"(.*)\\\",/) 
+	{
+		$value = $1;
+	}
+	#int
+	elsif ($value =~ m/^(\d+) '.*'/) 
 	{
 		$value = $1;
 	}
