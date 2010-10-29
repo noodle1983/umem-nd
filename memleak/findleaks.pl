@@ -149,16 +149,16 @@ sub leaky_cache
 
 	my $cache_flags = getAttribByAddr("(umem_cache_t *)", "$cache_addr", "cache_flags", $debug);
 
+	#transaction auditing.
 	my $audit = $cache_flags & 0x1;
 	if ($audit)
 	{
-		print "[leaky_cache]((umem_cache_t *)$cache_addr)->cache_flags:$cache_flags\n";
+		#print "[leaky_cache]((umem_cache_t *)$cache_addr)->cache_flags:$cache_flags\n";
 		walk_umem_bufctl(leaky_mtab, $cache_addr, $data, $cache_flags, $debug);
-		#walk = "bufctl";
-		#cb = (mdb_walk_cb_t)leaky_mtab;
 	}
 	else
 	{
+		die "[leaky_cache]((umem_cache_t *)$cache_addr)->cache_flags:$cache_flags\n";
 		#walk = "umem";
 		#cb = (mdb_walk_cb_t)leaky_mtab_addr;
 	}
@@ -172,10 +172,10 @@ sub leaky_mtab{
 
 	my $bc_addr = getAttribByAddr("(umem_bufctl_t *)", "$bufctl_addr", "bc_addr", $debug);      
 	#mark it LKM_CTL_BUFCTL(0)
-	my $lkm_ctl_addr = LKM_CTL($bc_addr, 0);
+	my $lkm_ctl_addr = LKM_CTL($bufctl_addr, 0);
 
-	print "[leaky_mtab]start:$bc_addr, end:?, addr:$lkm_ctl_addr\n" if $debug & $DEBUG_FILL;
-	push @$data, [$bc_addr, -1, $lkm_ctl_addr];
+	print "[leaky_mtab]start:$bc_addr, end:unkown, addr:$lkm_ctl_addr\n" if $debug & $DEBUG_FILL;
+	push @$data, [$bc_addr, "unknown", $lkm_ctl_addr];
 }
 #---------------------------------------------------------------
 sub walk_umem_bufctl{
@@ -231,7 +231,6 @@ sub walk_umem_hash{
 
 	my $cache_hash_table = getAttribByAddr("(umem_cache_t *)", "$umem_addr", "cache_hash_table", $debug);
 	my $nelems = getAttribByAddr("(umem_cache_t *)", "$umem_addr", "cache_hash_mask", $debug) + 1;
-	print "table:$cache_hash_table, nelems:$nelems\n";
 
 	my $addr = "0x0";
 	my $pos = 0;
