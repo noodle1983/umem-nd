@@ -114,10 +114,6 @@ sub leaky_seg{
 	my $seg_vs_start = getAttribByAddr("(vmem_seg_t *)", "$seg_addr", "vs_start");
 	my $seg_vs_end = getAttribByAddr("(vmem_seg_t *)", "$seg_addr", "vs_end");
 	
-	#my $lkm_ctl_addr = hex(substr $seg_addr, 2);
-	#$lkm_ctl_addr = (($lkm_ctl_addr & ~3) | 1);
-	#$lkm_ctl_addr = sprintf "0x%x", $lkm_ctl_addr;
-	
 	#mark it LKM_CTL_VMSEG(1)
 	my $lkm_ctl_addr = LKM_CTL($seg_addr, 1);
 
@@ -157,6 +153,7 @@ sub leaky_cache
 	if ($audit)
 	{
 		print "[leaky_cache]((umem_cache_t *)$cache_addr)->cache_flags:$cache_flags\n";
+		walk_umem_bufctl(leaky_mtab, $cache_addr, $data, $cache_flags, $debug);
 		#walk = "bufctl";
 		#cb = (mdb_walk_cb_t)leaky_mtab;
 	}
@@ -165,10 +162,95 @@ sub leaky_cache
 		#walk = "umem";
 		#cb = (mdb_walk_cb_t)leaky_mtab_addr;
 	}
+}
+#---------------------------------------------------------------
+sub leaky_mtab{
+	my $bufctl_addr = shift;
+	my $data = shift;
+	my $debug = shift ||$global_debug;
+	print "[leaky_mtab]\n" if ($debug & $DEBUG_FUN);
 
+	my $bc_addr = getAttribByAddr("(umem_bufctl_t *)", "$bufctl_addr", "bc_addr", $debug);      
+	#mark it LKM_CTL_BUFCTL(0)
+	my $lkm_ctl_addr = LKM_CTL($bc_addr, 0);
 
+	print "[leaky_mtab]start:$bc_addr, end:?, addr:$lkm_ctl_addr\n" if $debug & $DEBUG_FILL;
+	push @$data, [$bc_addr, -1, $lkm_ctl_addr];
+}
+#---------------------------------------------------------------
+sub walk_umem_bufctl{
+	my $callback = shift;	
+	my $umem_addr = shift;
+	my $data = shift;
+	my $cache_flags = shift; 
+	my $debug = shift ||$global_debug;
+	print "[walk_umem_bufctl]\n" if ($debug & $DEBUG_FUN);
+
+	#for bufctl, $type = UM_ALLOCATED(0x1) | UM_BUFCTL(0x4)
+	##define	UM_ALLOCATED		0x1
+	##define	UM_FREE			0x2
+	##define	UM_BUFCTL		0x4
+	##define	UM_HASH			0x8
+	my $type = 5;
+
+	#$type = $type & ~UMF_HASH(0x8)
+	#no need
+
+	my $cache_buftotal = 
+		getAttribByAddr("(umem_cache_t *)", "$umem_addr", "cache_buftotal");
+	if ($cache_buftotal == 0)
+	{
+		print "[walk_umem_bufctl]ignore umem bufctl. ((umem_cache_t *)$umem_addr)->cache_buftotal:$cache_buftotal\n" if ($debug & $DEBUG_IGNORE); 
+		return;
+	}
+	
+	#If they ask for bufctls, but it's a small-slab cache,there is nothing to report.
+	#walk type contain UM_BUFCTL(0x4), but cache_flags without UMF_HASH(0x8), done
+	if (($type & 0x4) && not ($cache_flags & 0x200)) 
+	{
+		print "[walk_umem_bufctl]ignore. bufctl, but no hash flags\n" if ($debug & $DEBUG_IGNORE); 
+		return;
+	}
+	walk_umem_hash($callback, $umem_addr, $data, $debug);
 
 }
+#---------------------------------------------------------------
+sub walk_umem_hash{
+	my $callback = shift;	
+	my $umem_addr = shift;
+	my $data = shift;
+	my $debug = shift ||$global_debug;
+	print "[walk_umem_hash]\n" if ($debug & $DEBUG_FUN);
+
+	my $cache_flags = getAttribByAddr("(umem_cache_t *)", "$umem_addr", "cache_flags", $debug);
+	if (not ($cache_flags & 0x200)) 
+	{
+		print "[walk_umem_hash]ignore, no hash table. ((umem_cache_t *)$umem_addr)->cache_flags:$cache_flags\n" if ($debug & $DEBUG_IGNORE); 
+		return;
+	}
+
+	my $cache_hash_table = getAttribByAddr("(umem_cache_t *)", "$umem_addr", "cache_hash_table", $debug);
+	my $nelems = getAttribByAddr("(umem_cache_t *)", "$umem_addr", "cache_hash_mask", $debug) + 1;
+	print "table:$cache_hash_table, nelems:$nelems\n";
+
+	my $addr = "0x0";
+	my $pos = 0;
+	for (; $pos < $nelems; $pos++)
+	{
+		$addr = getAttribByAddr("(umem_cache_t *)", "$umem_addr", "cache_hash_table[$pos]", $debug);
+		if ($addr eq "0x0")
+		{
+			print "[walk_umem_hash]ignore ((umem_cache_t *)$umem_addr)->cache_hash_table[$pos]:$addr\n" if ($debug & $DEBUG_IGNORE); 
+			next;
+		}
+		while ($addr ne "0x0")
+		{
+			&$callback($addr, $data, $debug);
+			$addr = getAttribByAddr("(umem_bufctl_t *)", "$addr", "bc_next", $debug);      
+		}
+	}
+}
+
 #---------------------------------------------------------------
 #---------------------------------------------------------------
 sub walk_vmem{
@@ -196,23 +278,6 @@ sub walk_vmem_alloc{
 	print "[walk_vmem_alloc]\n" if ($debug & $DEBUG_FUN);
 
 	walk_vmem_seg($callback, ["1", $vm_addr, $data], $debug);
-
-}
-#---------------------------------------------------------------
-sub walk_umem_bufctl{
-	my $callback = shift;	
-	my $umem_addr = shift;
-	my $data = shift;
-	my $debug = shift ||$global_debug;
-	print "[walk_umem_bufctl]\n" if ($debug & $DEBUG_FUN);
-
-	#for bufctl, $type = UM_ALLOCATED(0x1) | UM_BUFCTL(0x4)
-	my $type = 5;
-	#$type = $type & ~UMF_HASH(0x8)
-	#cache_buftotal = 0, done.
-	
-	#walk type contain UM_BUFCTL(0x4), but cache_flags without UMF_HASH(0x8), done
-
 
 }
 #---------------------------------------------------------------
