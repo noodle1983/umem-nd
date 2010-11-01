@@ -4,6 +4,7 @@ use IPC::Open3;
 use Symbol;
 use IO::Handle;
 use IO::Select;
+use Data::Dumper;
 
 #debug level
 my $DEBUG_GDBRSP = 0x1;
@@ -46,8 +47,11 @@ doGdbCmd("-stack-info-frame");
 #walk_umem_cache(leaky_estimate, \$total_size);
 #walk_vmem(callback_walk_vmem_test, \$total_size);
 
+#table:[[vs_start, vs_end, bufctl]]
 my @ltab;
-leaky_subr_fill(\@ltab, $DEBUG_LOGIC);
+leaky_subr_fill(\@ltab, $DEBUG_FILL);
+@ltab = sort {$a->[0]<=>$b->[0]} @ltab;
+print Data::Dumper->Dump(\@ltab);
 #walk_vmem_alloc( leaky_seg,	"0xb7f29280", \@ltab);
 
 doGdbCmd("-gdb-exit");
@@ -66,7 +70,7 @@ sub leaky_subr_fill
 
 	print "[leaky_subr_fill]\n" if ($debug & $DEBUG_FUN);
 
-	#walk_vmem(leaky_vmem, $ltab, $debug);
+	walk_vmem(leaky_vmem, $ltab, $debug);
 
 	walk_umem_cache(leaky_cache, $ltab, $debug);
 }
@@ -112,7 +116,9 @@ sub leaky_seg{
 	}
 
 	my $seg_vs_start = getAttribByAddr("(vmem_seg_t *)", "$seg_addr", "vs_start");
+	$seg_vs_start = sprintf "0x%x", $seg_vs_start;
 	my $seg_vs_end = getAttribByAddr("(vmem_seg_t *)", "$seg_addr", "vs_end");
+	$seg_vs_end = sprintf "0x%x", $seg_vs_end;
 	
 	#mark it LKM_CTL_VMSEG(1)
 	my $lkm_ctl_addr = LKM_CTL($seg_addr, 1);
