@@ -14,6 +14,7 @@ my $DEBUG_WALKER = 0x8;
 my $DEBUG_FILL = 0x10;
 my $DEBUG_IGNORE = 0x20;
 my $DEBUG_FUN = 0x40;
+my $DEBUG_DUMP = 0x80;
 
 my $DEBUG_LOGIC = $DEBUG_FILL | $DEBUG_IGNORE ;
 my $global_debug = 0;
@@ -50,9 +51,18 @@ doGdbCmd("-stack-info-frame");
 #table:[[vs_start, vs_end, bufctl]]
 my @ltab;
 leaky_subr_fill(\@ltab, $DEBUG_FILL);
-@ltab = sort {$a->[0]<=>$b->[0]} @ltab;
-print Data::Dumper->Dump(\@ltab);
-#walk_vmem_alloc( leaky_seg,	"0xb7f29280", \@ltab);
+@ltab = sort {$a->[1]<=>$b->[1]} @ltab;
+#print "actual buffers[[vs_start, vs_end, bufctl]]:\n" 
+#	. Data::Dumper->Dump(\@ltab); #if $global_debug & $DEBUG_DUMP;
+
+#leaky_subr_run();
+walk_thread(\@ltab, 0);
+print "actual buffers[[vs_start, vs_end, bufctl]]:\n" 
+	. Data::Dumper->Dump(\@ltab); #if $global_debug & $DEBUG_DUMP;
+#walk_section();
+#info variables
+#leaky_subr_add_leak();
+#leaky_dump();
 
 doGdbCmd("-gdb-exit");
 close $GDB_OUT;
@@ -63,8 +73,110 @@ print "\nDone\n";
 #---------------------------------------------------------------
 #command logic
 #---------------------------------------------------------------
-sub leaky_subr_fill
-{
+sub walk_thread{
+	$data = shift;
+	$callback = shift;
+	my $debug = shift || $global_debug;
+	print "[walk_thread]\n" if ($debug & $DEBUG_FUN);
+	
+	my @res = doGdbCmd("-thread-list-ids", $debug);
+	while (@res[0] =~ /thread-id="(\d*)"/g)
+	{
+		my $tid = $1;
+		walk_thread_frame($tid, $data, $callback, $debug);
+	}
+	
+}
+#---------------------------------------------------------------
+sub walk_thread_frame{
+	$tid  = shift;
+	$data = shift;
+	$callback = shift;
+	my $debug = shift || $global_debug;
+	print "[walk_thread_frame]\n" if ($debug & $DEBUG_FUN);
+
+	doGdbCmd("-thread-select $tid", $debug);
+
+	my $stack_depth = -1;
+	my @res = doGdbCmd("-stack-info-depth", $debug);
+	if (@res[0] =~ /depth="(\d*)"/g)
+	{
+		$stack_depth = $1;
+	}
+
+	my $frame_index = 0;
+	for (; $frame_index < $stack_depth; $frame_index++)
+	{
+		doGdbCmd("-stack-select-frame $frame_index", $debug);
+		#my @res = doGdbCmd("-stack-list-locals --simple-values", $debug);
+		#doGdbCmd("-data-evaluate-expression $name", $debug);
+		my @res = doGdbCmd("-stack-list-locals --all-values", $debug);
+		while (@res[0] =~ /(0x[0-9a-f]+)/g)
+		{
+			leaky_do_grep_ptr($1, $data, $debug);
+		}
+
+	}
+	
+	#&$callback($tid, $data, $debug);
+}
+#---------------------------------------------------------------
+sub leaky_do_grep_ptr{
+	my $addr = shift;
+	my $ltab = shift;
+	my $debug = shift || $global_debug;
+
+	$addr = hex(substr $addr, 2) if $addr =~ /^0x/;
+
+	if ($addr < $ltab->[0]->[1] or
+		$addr >= $ltab->[-1]->[3])
+	{
+		return 0;
+	}
+
+	my $index = leaky_search($addr, $ltab, $debug);
+	if ($index == -1)
+	{
+		return 0;
+	}
+
+	my $buff = $ltab->[$index];
+	$buff->[1] |= 1;
+
+}
+#---------------------------------------------------------------
+sub leaky_search{
+	my $addr = shift;
+	my $ltab = shift;
+	my $debug = shift || $global_debug;
+
+	my $left = 0; 
+	my $right = @$ltab - 1;
+	my $guess;
+
+	while ($left <= $right)
+	{
+		$guess = ($left + $right) >> 1;
+
+		if ($addr < $ltab->[$guess]->[1])
+		{
+			$right = $guess -1;
+			#print "guess:$guess, [$left, $right)\n";
+			next;
+		}
+
+		if ($addr >= $ltab->[$guess]->[3])
+		{
+			$left = $guess +1;
+			#print "guess:$guess, [$left, $right)\n";
+			next;
+		}
+		return $guess;
+	}
+	return -1;
+}
+#---------------------------------------------------------------
+sub leaky_subr_fill{
 	my $ltab = shift;
 	my $debug = shift || $global_debug;
 
@@ -116,15 +228,16 @@ sub leaky_seg{
 	}
 
 	my $seg_vs_start = getAttribByAddr("(vmem_seg_t *)", "$seg_addr", "vs_start");
-	$seg_vs_start = sprintf "0x%x", $seg_vs_start;
+	my $seg_vs_start_str = sprintf "0x%x", $seg_vs_start;
 	my $seg_vs_end = getAttribByAddr("(vmem_seg_t *)", "$seg_addr", "vs_end");
-	$seg_vs_end = sprintf "0x%x", $seg_vs_end;
+	my $seg_vs_end_str = sprintf "0x%x", $seg_vs_end;
 	
 	#mark it LKM_CTL_VMSEG(1)
 	my $lkm_ctl_addr = LKM_CTL($seg_addr, 1);
 
 	print "[leaky_seg]start:$seg_vs_start, end:$seg_vs_end, addr:$lkm_ctl_addr, ((vmem_seg_t*)$seg_addr)\n" if $debug & $DEBUG_FILL;
-	push @$data, [$seg_vs_start, $seg_vs_end, $lkm_ctl_addr];
+	push @$data, [$seg_vs_start_str, $seg_vs_start, 
+				  $seg_vs_end_str, $seg_vs_end, $lkm_ctl_addr];
 }
 #---------------------------------------------------------------
 ##define	LKM_CTL_BUFCTL	0	/* normal allocation, PTR is bufctl */
@@ -154,6 +267,7 @@ sub leaky_cache
 	}
 
 	my $cache_flags = getAttribByAddr("(umem_cache_t *)", "$cache_addr", "cache_flags", $debug);
+	my $cache_bufsize = getAttribByAddr("(umem_cache_t *)", "$cache_addr", "cache_bufsize", $debug);
 
 	#transaction auditing.
 	my $audit = $cache_flags & 0x1;
@@ -161,12 +275,21 @@ sub leaky_cache
 	{
 		#print "[leaky_cache]((umem_cache_t *)$cache_addr)->cache_flags:$cache_flags\n";
 		walk_umem_bufctl(leaky_mtab, $cache_addr, $data, $cache_flags, $debug);
+
 	}
 	else
 	{
 		die "[leaky_cache]((umem_cache_t *)$cache_addr)->cache_flags:$cache_flags\n";
 		#walk = "umem";
 		#cb = (mdb_walk_cb_t)leaky_mtab_addr;
+	}
+
+	#fill the vc_end
+	my $back_it = -1;
+	while ($data->[$back_it]->[3] == -1)
+	{
+		$data->[$back_it]->[3] = $data->[$back_it]->[1] + $cache_bufsize;
+		$data->[$back_it]->[2] = sprintf "0x%x", $data->[$back_it]->[3];
 	}
 }
 #---------------------------------------------------------------
@@ -181,7 +304,8 @@ sub leaky_mtab{
 	my $lkm_ctl_addr = LKM_CTL($bufctl_addr, 0);
 
 	print "[leaky_mtab]start:$bc_addr, end:unkown, addr:$lkm_ctl_addr\n" if $debug & $DEBUG_FILL;
-	push @$data, [$bc_addr, "unknown", $lkm_ctl_addr];
+	push @$data, [$bc_addr, hex(substr $bc_addr, 2), 
+				  "", -1, $lkm_ctl_addr];
 }
 #---------------------------------------------------------------
 sub walk_umem_bufctl{
