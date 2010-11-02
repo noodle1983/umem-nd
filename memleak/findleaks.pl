@@ -50,18 +50,19 @@ doGdbCmd("-stack-info-frame");
 
 #table:[[vs_start, vs_end, bufctl]]
 my @ltab;
-leaky_subr_fill(\@ltab, $DEBUG_FILL);
+leaky_subr_fill(\@ltab, 0);
 @ltab = sort {$a->[1]<=>$b->[1]} @ltab;
 #print "actual buffers[[vs_start, vs_end, bufctl]]:\n" 
 #	. Data::Dumper->Dump(\@ltab); #if $global_debug & $DEBUG_DUMP;
 
 #leaky_subr_run();
 walk_thread(\@ltab, 0);
-print "actual buffers[[vs_start, vs_end, bufctl]]:\n" 
-	. Data::Dumper->Dump(\@ltab); #if $global_debug & $DEBUG_DUMP;
+#print "actual buffers[[vs_start, vs_end, bufctl]]:\n" 
+#	. Data::Dumper->Dump(\@ltab); #if $global_debug & $DEBUG_DUMP;
 #walk_section();
 #info variables
-#leaky_subr_add_leak();
+
+find_leak(\@ltab, -1);
 #leaky_dump();
 
 doGdbCmd("-gdb-exit");
@@ -73,9 +74,46 @@ print "\nDone\n";
 #---------------------------------------------------------------
 #command logic
 #---------------------------------------------------------------
+sub find_leak{
+	my $ltab = shift;
+	my $debug = shift || $global_debug;
+	
+	foreach my $buff (@$ltab)
+	{
+		if (not $buff->[1] & 1)
+		{
+			leaky_subr_add_leak($buff, $debug);
+
+		}
+	}
+}
+#---------------------------------------------------------------
+sub leaky_subr_add_leak{
+	my $leak_buff = shift;
+	my $debug = shift || $global_debug;
+
+	my $depth = 0;
+	#LKM_CTL_BUFCTL
+	if ($leak_buff->[5] == 0)
+	{
+		$depth = 
+			getAttribByAddr("(umem_bufctl_audit_t*)", "$leak_buff->[4]", "bc_depth", $debug);
+	}
+	#LKM_CTL_VMSEG
+	elsif ($leak_buff->[5] == 1)
+	{
+		#$depth = 
+		#	getAttribByAddr("(vmem_seg_t*)", "$leak_buff->[4]", "vs_depth", $debug);
+		doGdbCmd("-data-evaluate-expression \"*((vmem_seg_t*)$leak_buff->[4])\"", $debug);
+	}
+
+
+}
+
+#---------------------------------------------------------------
 sub walk_thread{
-	$data = shift;
-	$callback = shift;
+	my $data = shift;
+	my $callback = shift;
 	my $debug = shift || $global_debug;
 	print "[walk_thread]\n" if ($debug & $DEBUG_FUN);
 	
@@ -89,9 +127,9 @@ sub walk_thread{
 }
 #---------------------------------------------------------------
 sub walk_thread_frame{
-	$tid  = shift;
-	$data = shift;
-	$callback = shift;
+	my $tid  = shift;
+	my $data = shift;
+	my $callback = shift;
 	my $debug = shift || $global_debug;
 	print "[walk_thread_frame]\n" if ($debug & $DEBUG_FUN);
 
@@ -233,11 +271,12 @@ sub leaky_seg{
 	my $seg_vs_end_str = sprintf "0x%x", $seg_vs_end;
 	
 	#mark it LKM_CTL_VMSEG(1)
-	my $lkm_ctl_addr = LKM_CTL($seg_addr, 1);
+	my $seg_type = 1;
 
 	print "[leaky_seg]start:$seg_vs_start, end:$seg_vs_end, addr:$lkm_ctl_addr, ((vmem_seg_t*)$seg_addr)\n" if $debug & $DEBUG_FILL;
 	push @$data, [$seg_vs_start_str, $seg_vs_start, 
-				  $seg_vs_end_str, $seg_vs_end, $lkm_ctl_addr];
+				  $seg_vs_end_str, $seg_vs_end, 
+				  $seg_addr, $seg_type];
 }
 #---------------------------------------------------------------
 ##define	LKM_CTL_BUFCTL	0	/* normal allocation, PTR is bufctl */
@@ -251,7 +290,6 @@ sub LKM_CTL{
 
 	my $lkm_ctl_addr = hex(substr $addr, 2);
 	$lkm_ctl_addr = (($lkm_ctl_addr & ~3) | $type);
-	$lkm_ctl_addr = sprintf "0x%x", $lkm_ctl_addr;
 	return $lkm_ctl_addr;
 }
 #---------------------------------------------------------------
@@ -301,11 +339,12 @@ sub leaky_mtab{
 
 	my $bc_addr = getAttribByAddr("(umem_bufctl_t *)", "$bufctl_addr", "bc_addr", $debug);      
 	#mark it LKM_CTL_BUFCTL(0)
-	my $lkm_ctl_addr = LKM_CTL($bufctl_addr, 0);
+	my $seg_type = 0;
 
 	print "[leaky_mtab]start:$bc_addr, end:unkown, addr:$lkm_ctl_addr\n" if $debug & $DEBUG_FILL;
 	push @$data, [$bc_addr, hex(substr $bc_addr, 2), 
-				  "", -1, $lkm_ctl_addr];
+				  "", -1, 
+				  $bufctl_addr, $seg_type];
 }
 #---------------------------------------------------------------
 sub walk_umem_bufctl{

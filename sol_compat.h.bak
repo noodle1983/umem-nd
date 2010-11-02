@@ -10,6 +10,9 @@
 
 #include <stdint.h>
 #include <pthread.h>
+#include <linux/types.h>
+#include <libelf.h>
+#include <netinet/in.h>
 
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
@@ -41,15 +44,70 @@
 #define bzero(m, s)			memset(m, 0, s)
 #endif
 
+#if defined(_ELF64) && !defined(_ELF32_COMPAT)
+typedef Elf64_Ehdr  Ehdr;
+typedef Elf64_Shdr  Shdr;
+#else
+typedef Elf32_Ehdr  Ehdr;
+typedef Elf32_Shdr  Shdr;
+#endif
+#define PN_XNUM 0xffff
+
+/*
+ *  *  * values for uc_flags
+ *   *   * these are implementation dependent flags, that should be hidden
+ *    *    * from the user interface, defining which elements of ucontext
+ *     *     * are valid, and should be restored on call to setcontext
+ *      *      */
+
+#define UC_SIGMASK  0x01
+#define UC_STACK    0x02
+#define UC_CPU      0x04
+#define UC_MAU      0x08
+#define UC_FPU      UC_MAU
+#define UC_INTR     0x10
+#define UC_ASR      0x20
+
+#define UC_MCONTEXT (UC_CPU|UC_FPU|UC_ASR)
+
+/*
+ *  *  * UC_ALL specifies the default context
+ *   *   */
+
+#define UC_ALL      (UC_SIGMASK|UC_STACK|UC_MCONTEXT)
+
+typedef struct                                            
+{                                                         
+	int a_type;                                           
+	union {                                               
+		long    a_val;                                    
+#ifdef __STDC__                                           
+		void    *a_ptr;                                   
+#else                                                     
+		char    *a_ptr;                                   
+#endif                                                    
+		void    (*a_fcn)();                               
+	} a_un;                                               
+} auxv_t; 
+
+#define     MAXNAMELEN      256
+#define        ULLONG_MAX      18446744073709551615ULL
+typedef struct in6_addr in6_addr_t;
+typedef unsigned long long u_int64_t;
 typedef pthread_t thread_t;
 typedef pthread_mutex_t mutex_t;
 typedef pthread_cond_t cond_t;
 typedef u_int64_t hrtime_t;
+typedef unsigned short ushort_t;
+typedef unsigned long long  u_longlong_t;
 typedef uint32_t uint_t;
 typedef unsigned long ulong_t;
 typedef struct timespec timestruc_t;
 typedef long long longlong_t;
+typedef longlong_t      off64_t; 
 typedef struct timespec timespec_t;
+typedef unsigned char uchar_t;
+typedef enum { B_FALSE, B_TRUE } boolean_t;
 static INLINE hrtime_t gethrtime(void) {
   struct timeval tv;
   gettimeofday(&tv, NULL);
@@ -190,5 +248,6 @@ static INLINE int __nthreads(void)
 # define MAX(a,b) ((a) > (b) ? (a) : (b))
 #endif
 
+#define     NBBY    8 
 
 #endif
