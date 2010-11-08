@@ -45,6 +45,12 @@
 
 #include <stdio.h>
 
+#ifdef linux
+#include <pthread.h>
+#include <execinfo.h>
+#include <umem_impl.h>
+#endif
+
 #if defined(__MACH__)
 /*
  * Darwin doesn't have any exposed frame info, so give it some space.
@@ -76,6 +82,22 @@ getpcstack(uintptr_t *pcstack, int pcstack_limit, int check_signal)
 {
 #ifdef EC_UMEM_DUMMY_PCSTACK
   return 0;
+#else
+/* linux implementation */
+#ifdef linux
+	extern pthread_key_t key_in_get_stack;
+	void* is_first_call;
+	int depth;
+
+	is_first_call = pthread_getspecific(key_in_get_stack);
+    if (is_first_call == NULL)
+	{
+		pthread_setspecific(key_in_get_stack, -1);
+		depth =  backtrace(pcstack, pcstack_limit);
+		pthread_setspecific(key_in_get_stack, NULL);
+		return depth;
+	}
+	return 0;
 #else
 	struct frame *fp;
 	struct frame *nextfp, *minfp;
@@ -207,5 +229,6 @@ getpcstack(uintptr_t *pcstack, int pcstack_limit, int check_signal)
 		minfp = fp;
 	}
 	return (depth);
-#endif
+#endif /* linux */
+#endif /* EC_UMEM_DUMMY_PCSTACK */
 }

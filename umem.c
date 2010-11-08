@@ -402,6 +402,11 @@
 
 #define	UMEM_VMFLAGS(umflag)	(VM_NOSLEEP)
 
+#ifdef linux
+#include <pthread.h>
+pthread_key_t key_in_get_stack;
+#endif
+
 size_t pagesize;
 
 /*
@@ -2906,6 +2911,13 @@ void
 umem_startup(caddr_t start, size_t len, size_t pagesize, caddr_t minstack,
     caddr_t maxstack) 
 {
+/*
+ * initialize the key for getpcstack
+ */
+#ifdef linux
+pthread_key_create( &key_in_get_stack, NULL );
+#endif
+
 #ifdef UMEM_STANDALONE
 	int idx;
 	/* Standalone doesn't fork */
