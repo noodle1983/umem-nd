@@ -1,5 +1,0 @@
-apt-get install libelf-dev
-move libproc.h proc_service.h
-change stack.h
-comment in leaky_subr.c
-comment in libumem
