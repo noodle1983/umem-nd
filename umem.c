@@ -402,13 +402,6 @@
 
 #define	UMEM_VMFLAGS(umflag)	(VM_NOSLEEP)
 
-#ifdef linux
-#include <pthread.h>
-pthread_mutexattr_t recursive_attr;
-pthread_key_t key_in_get_stack;
-int is_bt_available = 0;
-#endif
-
 size_t pagesize;
 
 /*
@@ -2913,16 +2906,6 @@ void
 umem_startup(caddr_t start, size_t len, size_t pagesize, caddr_t minstack,
     caddr_t maxstack) 
 {
-/*
- * initialize the key for getpcstack
- */
-#ifdef linux
-	pthread_key_create( &key_in_get_stack, NULL );
-	is_bt_available = 0;
-	pthread_mutexattr_init(&recursive_attr);
-	pthread_mutexattr_settype(&recursive_attr, PTHREAD_MUTEX_RECURSIVE_NP);
-#endif
-
 #ifdef UMEM_STANDALONE
 	int idx;
 	/* Standalone doesn't fork */
@@ -3029,15 +3012,6 @@ umem_init(void)
 			ASSERT(umem_ready == UMEM_READY ||
 			    umem_ready == UMEM_READY_INIT_FAILED);
 			ASSERT(umem_init_thr == 0);
-			/*
-			 * initialization was completed already
-			 * now backtrace can be called for linux
-			 */
-#ifdef linux
-			(void) mutex_lock(&umem_init_lock);
-			is_bt_available = 1;
-			(void) mutex_unlock(&umem_init_lock);
-#endif
 			return (umem_ready == UMEM_READY);
 		}
 	} else if (!umem_init_env_ready) {

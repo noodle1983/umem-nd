@@ -5,7 +5,7 @@ CFLAGs=
 LDFLAGS=
 LIB=-lpthread
 
-TARGET=a.out
+TARGET=findleak_test
 
 CPPFILES=$(wildcard *.cpp)
 

@@ -85,25 +85,8 @@ static INLINE int thr_create(void *stack_base,
   return ret;
 }
 
-/*
- * the backtrace need to malloc again and lock the cache in the same thread
-static void __attribute__((constructor))
-	__bt_mutexattr_init (void)
-{
-	pthread_mutexattr_init(&recursive_attr);
-	pthread_mutexattr_settype(&recursive_attr, PTHREAD_MUTEX_RECURSIVE_NP);
-}
 
-static void __attribute__((destructor))
-	__bt_mutexattr_destroy (void)
-{
-	pthread_mutexattr_destroy(&recursive_attr);
-}
- */
-
-extern pthread_mutexattr_t recursive_attr;
-//# define mutex_init(mp, type, arg) pthread_mutex_init(mp, NULL)
-# define mutex_init(mp, type, arg) pthread_mutex_init(mp, &recursive_attr)
+# define mutex_init(mp, type, arg) pthread_mutex_init(mp, NULL)
 # define mutex_lock(mp)            pthread_mutex_lock(mp)
 # define mutex_unlock(mp)          pthread_mutex_unlock(mp)
 # define mutex_destroy(mp)         pthread_mutex_destroy(mp)
@@ -189,7 +172,7 @@ static INLINE uint_t ec_atomic_inc(uint_t *mem)
 #define _sysconf(a) sysconf(a)
 #define __NORETURN  __attribute__ ((noreturn))
 
-//#define EC_UMEM_DUMMY_PCSTACK 1
+#define EC_UMEM_DUMMY_PCSTACK 1
 static INLINE int __nthreads(void)
 {
   /* or more; just to force multi-threaded mode */

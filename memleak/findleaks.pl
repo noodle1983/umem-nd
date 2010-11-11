@@ -37,8 +37,8 @@ my $GDB_ERR = gensym();
 eval{ my $gdb_pid = open3 ($GDB_IN, $GDB_OUT, $GDB_ERR, "$gdb_cmd");};
 $selector->add($GDB_OUT);
 sleep 1;
-getOutputFrom(-1);
-doGdbCmd("-stack-info-frame");
+#getOutputFrom(-1);
+doGdbCmd("-stack-info-frame", -1);
 
 #func test
 #print doGdbCmd("-data-evaluate-expression \"umem_null_cache.cache_next\"", $DEBUG_GDBCMD) . "\n";

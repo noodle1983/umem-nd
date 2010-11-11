@@ -46,9 +46,116 @@
 #include <stdio.h>
 
 #ifdef linux
-#include <pthread.h>
-#include <execinfo.h>
-#include <umem_impl.h>
+#ifdef i386
+
+struct trace_arg
+{
+	void **array;
+	int cnt, size;
+	void *lastebp, *lastesp;
+};
+
+typedef enum
+{
+	_URC_NO_REASON = 0,
+	_URC_FOREIGN_EXCEPTION_CAUGHT = 1,
+	_URC_FATAL_PHASE2_ERROR = 2,
+	_URC_FATAL_PHASE1_ERROR = 3,
+	_URC_NORMAL_STOP = 4,
+	_URC_END_OF_STACK = 5,
+	_URC_HANDLER_FOUND = 6,
+	_URC_INSTALL_CONTEXT = 7,
+	_URC_CONTINUE_UNWIND = 8
+} _Unwind_Reason_Code;
+
+struct _Unwind_Context;
+
+typedef _Unwind_Reason_Code (*_Unwind_Trace_Fn)
+	     (struct _Unwind_Context *, void *);
+typedef void* _Unwind_Ptr; 
+
+# define unwind_backtrace _Unwind_Backtrace
+# define unwind_getip _Unwind_GetIP
+# define unwind_getcfa _Unwind_GetCFA
+# define unwind_getgr _Unwind_GetGR
+
+extern _Unwind_Reason_Code unwind_backtrace (_Unwind_Trace_Fn, void *);
+extern _Unwind_Ptr unwind_getip (struct _Unwind_Context *);
+extern _Unwind_Ptr unwind_getcfa (struct _Unwind_Context *);
+extern _Unwind_Ptr unwind_getgr (struct _Unwind_Context *, int);
+
+static _Unwind_Reason_Code
+backtrace_helper (struct _Unwind_Context *ctx, void *a)
+{
+	struct trace_arg *arg = a;
+
+	/* We are first called with address in the __backtrace function.
+	*      Skip it.  */
+	if (arg->cnt != -1)
+		arg->array[arg->cnt] = (void *) unwind_getip (ctx);
+	if (++arg->cnt == arg->size)
+		return _URC_END_OF_STACK;
+
+	/* %ebp is DWARF2 register 5 on IA-32.  */
+	arg->lastebp = (void *) unwind_getgr (ctx, 5);
+	arg->lastesp = (void *) unwind_getcfa (ctx);
+	return _URC_NO_REASON;
+}
+
+/* This is a global variable set at program start time.  It marks the
+ highest used stack address.  */
+extern void *__libc_stack_end;
+
+
+/* This is the stack layout we see with every stack frame
+ if not compiled without frame pointer.
+ 
+         +-----------------+        +-----------------+
+ %ebp -> | %ebp last frame--------> | %ebp last frame--->...
+         |                 |        |                 |
+         | return address  |        | return address  |
+         +-----------------+        +-----------------+
+
+ First try as far to get as far as possible using
+ _Unwind_Backtrace which handles -fomit-frame-pointer
+ as well, but requires .eh_frame info.  Then fall back to
+ walking the stack manually.  */
+
+struct layout
+{
+  struct layout *ebp;
+  void *ret;
+};
+
+
+int
+__backtrace (void **array, int size)
+{
+  struct trace_arg arg = { .array = array, .size = size, .cnt = -1 };
+
+  if (size >= 1)
+    unwind_backtrace (backtrace_helper, &arg);
+
+  if (arg.cnt > 1 && arg.array[arg.cnt - 1] == NULL)
+    --arg.cnt;
+  else if (arg.cnt < size)
+    {
+      struct layout *ebp = (struct layout *) arg.lastebp;
+
+      while (arg.cnt < size)
+	{
+	  /* Check for out of range.  */
+	  if ((void *) ebp < arg.lastesp || (void *) ebp > __libc_stack_end
+	      || ((long) ebp & 3))
+	    break;
+
+	  array[arg.cnt++] = ebp->ret;
+	  ebp = ebp->ebp;
+	}
+    }
+  return arg.cnt != -1 ? arg.cnt : 0;
+}
+#endif
 #endif
 
 #if defined(__MACH__)
@@ -85,33 +192,9 @@ getpcstack(uintptr_t *pcstack, int pcstack_limit, int check_signal)
 #else
 /* linux implementation */
 #ifdef linux
-	extern pthread_key_t key_in_get_stack;
-	extern int is_bt_available;
-	void* is_first_call;
-	int depth;
-
-	printf("[->getpcstack]\n");
-	/*
-	 * to avoid recursive allocation while initializing umem in backtrace
-	 */
-	if (!is_bt_available)
-	{
-		printf("[getpcstack-> not ready]\n");
-		return 0;
-	}
-	/*
-	 * to avoid recursive call to backtrace in backtrace
-	 */
-	is_first_call = pthread_getspecific(key_in_get_stack);
-    if (is_first_call == NULL)
-	{
-		pthread_setspecific(key_in_get_stack, -1);
-		depth =  backtrace(pcstack, pcstack_limit);
-		pthread_setspecific(key_in_get_stack, NULL);
-		printf("[getpcstack-> depth:%d]\n", depth);
-		return depth;
-	}
-	printf("[getpcstack-> recursive]\n", depth);
+#ifdef i386
+	return  __backtrace(pcstack, pcstack_limit);
+#endif
 	return 0;
 #else
 	struct frame *fp;
