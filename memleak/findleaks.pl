@@ -62,7 +62,7 @@ print "actual buffers[[vs_start, vs_end, bufctl]]:\n"
 #walk_section();
 #info variables
 
-find_leak(\@ltab, -1);
+find_leak(\@ltab);
 #leaky_dump();
 
 doGdbCmd("-gdb-exit");
@@ -77,6 +77,7 @@ print "\nDone\n";
 sub find_leak{
 	my $ltab = shift;
 	my $debug = shift || $global_debug;
+	print "[find_leak]\n" if ($debug & $DEBUG_FUN);
 	
 	foreach my $buff (@$ltab)
 	{
@@ -91,6 +92,7 @@ sub find_leak{
 sub leaky_subr_add_leak{
 	my $leak_buff = shift;
 	my $debug = shift || $global_debug;
+	print "[leaky_subr_add_leak]\n" if ($debug & $DEBUG_FUN);
 
 	my $depth = 0;
 	#LKM_CTL_BUFCTL
@@ -98,6 +100,7 @@ sub leaky_subr_add_leak{
 	{
 		$depth = 
 			getAttribByAddr("(umem_bufctl_audit_t*)", "$leak_buff->[4]", "bc_depth", $debug);
+		print "depth:$depth\n";
 	}
 	#LKM_CTL_VMSEG
 	elsif ($leak_buff->[5] == 1)
@@ -106,6 +109,7 @@ sub leaky_subr_add_leak{
 		#	getAttribByAddr("(vmem_seg_t*)", "$leak_buff->[4]", "vs_depth", $debug);
 		doGdbCmd("-data-evaluate-expression \"*((vmem_seg_t*)$leak_buff->[4])\"", $debug);
 	}
+
 
 
 }
