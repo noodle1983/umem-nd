@@ -16,12 +16,12 @@ my $DEBUG_IGNORE = 0x20;
 my $DEBUG_FUN = 0x40;
 my $DEBUG_DUMP = 0x80;
 
-my $DEBUG_LOGIC = $DEBUG_FILL | $DEBUG_IGNORE ;
+my $DEBUG_LOGIC = $DEBUG_FILL | $DEBUG_IGNORE | $DEBUG_DUMP;
 my $global_debug = 0;
 
 #console parameter
-my $exec_name = shift | "a.out";
-my $core_file = shift | "core";
+my $exec_name = shift || "a.out";
+my $core_file = shift || "core";
 
 #global attribute
 my $selector = IO::Select->new();
@@ -37,8 +37,8 @@ my $GDB_ERR = gensym();
 eval{ my $gdb_pid = open3 ($GDB_IN, $GDB_OUT, $GDB_ERR, "$gdb_cmd");};
 $selector->add($GDB_OUT);
 sleep 1;
-#getOutputFrom(-1);
-doGdbCmd("-stack-info-frame", -1);
+getOutputFrom(-1);
+doGdbCmd("-stack-info-frame");
 
 #func test
 #print doGdbCmd("-data-evaluate-expression \"umem_null_cache.cache_next\"", $DEBUG_GDBCMD) . "\n";
@@ -57,8 +57,8 @@ leaky_subr_fill(\@ltab, 0);
 
 #leaky_subr_run();
 walk_thread(\@ltab, 0);
-#print "actual buffers[[vs_start, vs_end, bufctl]]:\n" 
-#	. Data::Dumper->Dump(\@ltab); #if $global_debug & $DEBUG_DUMP;
+print "actual buffers[[vs_start, vs_end, bufctl]]:\n" 
+	. Data::Dumper->Dump(\@ltab); #if $global_debug & $DEBUG_DUMP;
 #walk_section();
 #info variables
 
@@ -317,7 +317,7 @@ sub leaky_cache
 	}
 	else
 	{
-		die "[leaky_cache]((umem_cache_t *)$cache_addr)->cache_flags:$cache_flags\n";
+		die "die for [leaky_cache]((umem_cache_t *)$cache_addr)->cache_flags:$cache_flags\n";
 		#walk = "umem";
 		#cb = (mdb_walk_cb_t)leaky_mtab_addr;
 	}
