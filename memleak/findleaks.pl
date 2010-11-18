@@ -48,7 +48,7 @@ doGdbCmd("-stack-info-frame");
 #walk_umem_cache(leaky_estimate, \$total_size);
 #walk_vmem(callback_walk_vmem_test, \$total_size);
 
-#table:[[vs_start, vs_end, bufctl]]
+#table:[[vs_start_str, vs_start_int, vs_end_str, vs_end_int, bufctl, seg_type]]
 my @ltab;
 leaky_subr_fill(\@ltab, 0);
 @ltab = sort {$a->[1]<=>$b->[1]} @ltab;
@@ -57,13 +57,16 @@ leaky_subr_fill(\@ltab, 0);
 
 #leaky_subr_run();
 walk_thread(\@ltab, 0);
-print "actual buffers[[vs_start, vs_end, bufctl]]:\n" 
-	. Data::Dumper->Dump(\@ltab); #if $global_debug & $DEBUG_DUMP;
+print "actual buffers[[vs_start_str, vs_start_int, vs_end_str, vs_end_int, bufctl, seg_type]]:\n" 
+	. Data::Dumper->Dump(\@ltab) if $global_debug & $DEBUG_DUMP;
 #walk_section();
 #info variables
 
+
+my $LK_BUFCTLHSIZE = 127;
+my %lk_bufctl;
 find_leak(\@ltab);
-#leaky_dump();
+leaky_dump();
 
 doGdbCmd("-gdb-exit");
 close $GDB_OUT;
@@ -74,11 +77,89 @@ print "\nDone\n";
 #---------------------------------------------------------------
 #command logic
 #---------------------------------------------------------------
+sub leaky_dump{
+	my $debug = shift || $global_debug;
+	print "[leaky_dump]\n" if ($debug & $DEBUG_FUN);
+
+	printf "\n\n%5s %18s %18s %s\n", "COUNT", "CACHE", "BUFCTL", "CALLER";
+	while (my ($k, $v) = each %lk_bufctl)
+	{
+		#[1, $type, $bufctl_addr, $buf_addr, $timestamp, 
+		#	$stack, $depth, $cid, $data];
+		printf "%5s %18s %18s %s\n"
+			, $v->[0], $v->[3], $v->[2], disass_addr($v->[5]->[0], $debug);
+		if ($v->[6] > 1)
+		{
+			for (1..($v->[6]-1))
+			{
+				printf "%43s %s\n" , "",disass_addr($v->[5]->[$_], $debug);
+			}
+		}
+		print "\n";
+	}
+
+}
+#---------------------------------------------------------------
+sub disass_addr{
+	my $addr = shift; 
+	my $debug = shift||$global_debug;
+
+	if (not $addr =~ /^0x/)
+	{
+		$addr = sprintf "0x%x", $addr;
+	}
+
+	my @res = doGdbCmd("-data-disassemble -s $addr -e $addr+8 1", $debug);	
+	my $lines;
+	if ($res[0] =~ m/^\^done,asm_insns=\[(.*)\]/ )
+	{
+		$lines = $1;
+	}
+
+	my $src_line, my $src_file, my $insn_addr;
+	my $func_name, my $offset;
+	if ($lines =~ m|line=\"(\d+)\"|)
+	{
+		$src_line = $1;	
+	}
+
+	if ($lines =~ m|file=\"([^"]+)\"|)
+	{
+		$src_file = $1;	
+	}
+
+	if ($lines =~ m|address=\"([^"]+)\"|)
+	{
+		$insn_addr = $1;	
+	}
+
+	if ($lines =~ m|func-name=\"([^"]+)\"|)
+	{
+		$func_name = $1;	
+	}
+	
+	if ($lines =~ m|offset=\"([^"]+)\"|)
+	{
+		$offset = $1;	
+	}
+
+	if ($src_file && $src_line)
+	{
+		return "$insn_addr $func_name+$offset $src_file:$src_line";
+	}
+	elsif ($insn_addr)
+	{
+		return "$insn_addr $func_name+$offset";
+	}
+	return "$addr  ?:?";
+}
+#---------------------------------------------------------------
 sub find_leak{
 	my $ltab = shift;
 	my $debug = shift || $global_debug;
 	print "[find_leak]\n" if ($debug & $DEBUG_FUN);
-	
+
+	undef %lk_bufctl;
 	foreach my $buff (@$ltab)
 	{
 		if (not $buff->[1] & 1)
@@ -95,25 +176,111 @@ sub leaky_subr_add_leak{
 	print "[leaky_subr_add_leak]\n" if ($debug & $DEBUG_FUN);
 
 	my $depth = 0;
+	my $timestamp = 0;
+	my @stack;
+	my $cid;
+	my $data;
 	#LKM_CTL_BUFCTL
 	if ($leak_buff->[5] == 0)
 	{
 		$depth = 
 			getAttribByAddr("(umem_bufctl_audit_t*)", "$leak_buff->[4]", "bc_depth", $debug);
-		print "depth:$depth\n";
+		return if $depth < 1;
+		$timestamp = 
+			getAttribByAddr("(umem_bufctl_audit_t*)", "$leak_buff->[4]", "bc_timestamp", $debug);
+		for (1..($depth - 1))
+		{
+			my $cur_stack = getAttribByAddr("(umem_bufctl_audit_t*)", "$leak_buff->[4]", "bc_stack[$_]", $debug);
+			push @stack, $cur_stack;
+		}
+		$depth -= 1;
+		$cid = getAttribByAddr("(umem_bufctl_audit_t*)", "$leak_buff->[4]", "bc_cache", $debug);
+		$data = $cid;
 	}
 	#LKM_CTL_VMSEG
 	elsif ($leak_buff->[5] == 1)
 	{
-		#$depth = 
-		#	getAttribByAddr("(vmem_seg_t*)", "$leak_buff->[4]", "vs_depth", $debug);
-		doGdbCmd("-data-evaluate-expression \"*((vmem_seg_t*)$leak_buff->[4])\"", $debug);
+		$depth = getAttribByAddr("(vmem_seg_t*)", "$leak_buff->[4]", "vs_depth", $debug);
+		return if $depth < 1;
+		$timestamp = getAttribByAddr("(vmem_seg_t*)", "$leak_buff->[4]", "vs_timestamp", $debug);
+		for (1..($depth - 1))
+		{
+			my $cur_stack = getAttribByAddr("(vmem_seg_t*)", "$leak_buff->[4]", "vs_stack[$_]", $debug);
+			push @stack, $cur_stack;
+		}
+		$depth -= 1;
+		$data = $leak_buff[3] - $leak_buff[1];
+	}
+	else
+	{
+		die "unsupport buffer type:$leak_buff->[5]\n"; 
 	}
 
-
-
+	print "add stack:\n" 
+		. Data::Dumper->Dump(\@stack) if $debug & $DEBUG_DUMP;
+	leaky_add_leak($leak_buff->[5], $leak_buff->[4], $leak_buff->[0]
+					, $timestamp, \@stack, $depth
+					, $cid, $data, $debug);
 }
 
+#---------------------------------------------------------------
+sub leaky_add_leak{
+	my $type = shift;
+	my $bufctl_addr = shift;
+	my $buf_addr = shift;
+	my $timestamp = shift;
+	my $stack = shift;
+	my $depth = shift;
+	my $cid = shift;
+	my $data = shift;
+	my $debug = shift || $global_debug;
+	print "[leaky_add_leak]\n" if ($debug & $DEBUG_FUN);
+
+	my $total = $type;
+	for (@$stack)
+	{
+		$total ^= $_;
+	}
+	
+	my $ndx = $total & $LK_BUFCTLHSIZE;
+	my $no_match = 0;
+	for (0 .. $LK_BUFCTLHSIZE)
+	{
+		if (not defined $lk_bufctl{$ndx})
+		{
+			print "[leaky_add_leak]add leak at index:$ndx\n" 
+				if ($debug & $DEBUG_FILL);
+			$lk_bufctl{$ndx} = [1, $type, $bufctl_addr, $buf_addr, $timestamp, 
+								$stack, $depth, $cid, $data];
+
+		}
+		elsif ($type != $lk_bufctl{$ndx}->[1] 
+				|| $depth != $lk_bufctl{$ndx}->[6]
+				|| $cid != $lk_bufctl{$ndx}->[7])
+		{
+			$no_match = 1;
+		}
+		else
+		{
+			for (0..($depth-1))
+			{
+				next if $stack->[$_] == $lk_bufctl{$ndx}->[5]->[$_];
+				$no_match = 1;
+			}
+			if ($no_match == 0)
+			{
+				print "[leaky_add_leak]dup leak at index:$ndx\n" 
+					if ($debug & $DEBUG_FILL);
+				$lk_bufctl{$ndx}->[0] += 1;
+			}
+				
+		}
+
+		$ndx = ($ndx + 1) & $LK_BUFCTLHSIZE if $no_match;
+		last;
+	}
+	
+}
 #---------------------------------------------------------------
 sub walk_thread{
 	my $data = shift;
@@ -594,7 +761,7 @@ sub getOutputFrom
 			next;
 		}
 		
-		if( not sysread($ready[0], $lines, 256, $offset))
+		if( not sysread($ready[0], $lines, 2048, $offset))
 		{
 			print "[getOutputFrom] read nothing, gdb may quit. \n"
 				if ($debug & $DEBUG_GDBRSP);
@@ -605,6 +772,7 @@ sub getOutputFrom
 		{
 			my $line = $1;
 			last if $line =~ /^$GDB_PROMT/;
+			next if $line =~ /^\s*$/;
 			push @result, $line;
 			$offset = pos($lines);
 		}

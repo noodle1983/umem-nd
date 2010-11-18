@@ -172,7 +172,7 @@ static INLINE uint_t ec_atomic_inc(uint_t *mem)
 #define _sysconf(a) sysconf(a)
 #define __NORETURN  __attribute__ ((noreturn))
 
-#define EC_UMEM_DUMMY_PCSTACK 1
+//#define EC_UMEM_DUMMY_PCSTACK 1
 static INLINE int __nthreads(void)
 {
   /* or more; just to force multi-threaded mode */

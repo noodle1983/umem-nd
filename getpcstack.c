@@ -193,7 +193,7 @@ getpcstack(uintptr_t *pcstack, int pcstack_limit, int check_signal)
 /* linux implementation */
 #ifdef linux
 #ifdef i386
-	return  __backtrace(pcstack, pcstack_limit);
+	return __backtrace(pcstack, pcstack_limit);
 #endif
 	return 0;
 #else
