@@ -108,6 +108,19 @@ sub disass_addr{
 	{
 		$addr = sprintf "0x%x", $addr;
 	}
+	my $func_name = disass_func($addr,$debug);
+	my $src_file = disass_src($addr, $debug);
+	return sprintf "%-10s %s %s", $addr, $func_name, $src_file;
+}
+#---------------------------------------------------------------
+sub disass_addr_direct{
+	my $addr = shift; 
+	my $debug = shift||$global_debug;
+
+	if (not $addr =~ /^0x/)
+	{
+		$addr = sprintf "0x%x", $addr;
+	}
 
 	my @res = doGdbCmd("-data-disassemble -s $addr -e $addr+8 1", $debug);	
 	my $lines;
@@ -213,7 +226,7 @@ sub leaky_subr_add_leak{
 	}
 	else
 	{
-		die "unsupport buffer type:$leak_buff->[5]\n"; 
+		die "[leaky_subr_add_leak]fatal error: unsupport buffer type:$leak_buff->[5]\n"; 
 	}
 
 	print "add stack:\n" 
@@ -488,7 +501,7 @@ sub leaky_cache
 	}
 	else
 	{
-		die "die for [leaky_cache]((umem_cache_t *)$cache_addr)->cache_flags:$cache_flags\n";
+		die "[leaky_cache]fatal error, please set env like:\nUMEM_DEBUG=default\nUMEM_LOGGING=transaction\nLD_PRELOAD=/usr/local/lib/libumem.so:/usr/local/lib/libumem_malloc.so\nand try again, more info: ((umem_cache_t *)$cache_addr)->cache_flags:$cache_flags\n";
 		#walk = "umem";
 		#cb = (mdb_walk_cb_t)leaky_mtab_addr;
 	}
@@ -739,6 +752,28 @@ sub doGdbCmd{
 }
 
 #---------------------------------------------------------------
+sub doGdbCLICmd{
+	my $cmd = shift;
+	my $debug = shift || $global_debug;
+
+	print $GDB_IN "-interpreter-exec console \"$cmd\"\n";
+	my @res = getOutputFrom($debug);
+	if ($debug & $DEBUG_GDBCMD)
+	{
+		print "="x60 . "\n";
+		print "-"x60 . "\n";
+		print "cmd:-interpreter-exec console \"$cmd\"\n";
+		for (@res){print "$_\n";};
+		print "-"x60 . "\n";
+		print "="x60 . "\n";
+	}
+
+	die "[doGdbCmd] fatal error: empty response from gdb of cmd: $cmd\n" 
+		if not @res and not $cmd =~ m/quit/i;
+	return @res;
+}
+
+#---------------------------------------------------------------
 #
 sub getOutputFrom
 {
@@ -755,7 +790,7 @@ sub getOutputFrom
 			$empty_count++;
 			if ($empty_count > 100)
 			{
-				die "[getOutputFrom] no ouput message for 10s. or promt not found.\n"
+				die "[getOutputFrom]fatal error: no ouput message for 10s. or promt not found.\n"
 					if ($debug & $DEBUG_GDBRSP);
 			}
 			next;
@@ -880,3 +915,31 @@ sub getAddrBySymbol
 	return undef;
 }
 
+#---------------------------------------------------------------
+sub disass_func{
+	my $addr = shift; 
+	my $debug = shift||$global_debug;
+
+	my @res = doGdbCLICmd("x $addr", $debug);
+	die "[disass_func]fatal error: failed to disass func at $addr \n@res\n" if not $res[-1] =~ /^\^done/;
+
+	if ($res[0] =~ /<(.*)>/)
+	{
+		return $1;
+	}
+	return "?";
+}
+#---------------------------------------------------------------
+sub disass_src{
+	my $addr = shift; 
+	my $debug = shift||$global_debug;
+
+	my @res = doGdbCLICmd("l *$addr", $debug);
+	return "" if not $res[-1] =~ /^\^done/;
+
+	if ($res[0] =~ /\((\S*:\d*)\)/)
+	{
+		return $1;
+	}
+	return "";
+}
