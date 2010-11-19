@@ -1,18 +1,28 @@
 #include <iostream>
 #include "pthread.h"
 #include "stdio.h"
+#include <list>
 
 using namespace std;
 
 class Container
 {
 	public:
+		Container(){};
+		Container(char* a):_a(a)
+		{};
 		char * _a;
 };
 static Container test;
 
 void* leak(void* ptr)
 {
+	list<Container*> l;
+	for (int i = 0; i < 5; i++)
+	{
+		l.push_back(new Container(new char[4]));
+	}
+
 	for (int i = 0; i < 5; i++)
 	{
 		test._a = new char[1024 * 1024];
@@ -35,6 +45,7 @@ void* leak(void* ptr)
 
 	}
 
+
 	cin >> input;	
 	
 
@@ -45,6 +56,7 @@ int main()
 {
 	pthread_t tid;
 	pthread_create(&tid, NULL, leak, NULL);
+
 
 	pthread_join(tid, NULL);
 
