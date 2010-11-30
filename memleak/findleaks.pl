@@ -66,7 +66,7 @@ print "actual buffers[[vs_start_str, vs_start_int, vs_end_str, vs_end_int, bufct
 my $LK_BUFCTLHSIZE = 127;
 my %lk_bufctl;
 find_leak(\@ltab);
-leaky_dump();
+#leaky_dump();
 
 doGdbCmd("-gdb-exit");
 close $GDB_OUT;
@@ -337,33 +337,136 @@ sub walk_thread_frame{
 		{
 			leaky_do_grep_ptr($1, $data, $debug);
 		}
-
+		
+		walk_thread_frame_variabale($data, $callback, $debug);	
 	}
 	
 	#&$callback($tid, $data, $debug);
 }
 #---------------------------------------------------------------
+sub walk_thread_frame_variabale{
+	my $data = shift;
+	my $callback = shift;
+	my $debug = shift || $global_debug;
+	print "[walk_thread_frame_variabale]\n" if ($debug & $DEBUG_FUN);
+
+	my @res = doGdbCmd("-stack-list-locals --simple-values", $debug);
+	my @vars = split /\{|\}/, $res[0]; 
+	my $var;
+	for $var (@vars)
+	{
+		next if not $var =~ m/name="([^"]+)"/;
+		my $name = $1;
+		next if not $var =~ m/type="([^"]+)"/;
+		my $type = $1;	
+		my $value;
+		if ($var =~ m/value="(.*)"/)
+		{
+			$value = $1;
+		}
+		
+		print "name: $name, type: $type, value:$value\n";
+		if ($type =~ m/^std::list/)
+		{
+			walk_std_list($name, $type, $data, $callback, -1); 
+			next;
+		}
+
+	}
+	doGdbCmd("-data-evaluate-expression $name", $debug);
+}
+#---------------------------------------------------------------
+sub walk_var{
+	my $name = shift;
+	my $type = shift;
+	my $value = shift;
+	my $data = shift;
+	my $callback = shift;
+	my $debug = shift || $global_debug;
+	print "[walk_var]\n" if ($debug & $DEBUG_FUN);
+
+	if ($type =~ /\*/)
+	{
+		if ($value)
+		{
+			if (leaky_do_grep_ptr($current, $data, $debug) > 0)
+			{
+				print "found buffer: $current\n";
+			}
+		}
+		print "[walk_var] ignore var:$type $name, value is empty\n" if $debug & $DEBUG_IGNORE;
+
+	}
+}
+#---------------------------------------------------------------
+sub walk_std_list{
+	my $list_name = shift;
+	my $list_type = shift;
+	my $data = shift;
+	my $callback = shift;
+	my $debug = shift || $global_debug;
+	print "[walk_std_list]\n" if ($debug & $DEBUG_FUN);
+
+	my $node_type = (split ',',$list_type)[0]; 
+
+	my $header = getAddrByCmd("-data-evaluate-expression &$list_name._M_impl._M_node", $debug);
+	doGdbCLICmd("set \$current = $list_name._M_impl._M_node._M_next", $debug);
+	my $current = getAddrByCmd("-data-evaluate-expression \$current", $debug);
+	while($header ne $current)
+	{
+		if (leaky_do_grep_ptr($current, $data, $debug) > 0)
+		{
+			print "found buffer: $current\n";
+		}
+		#get the node value
+		my $node_addr = getAddrByCmd("-data-evaluate-expression (\$current+1)", $debug);
+		if ($node_type =~ /\*/)
+		{
+			my $node = getAddrByCmd("-data-evaluate-expression *($node_type*)(\$current+1)", $debug) 
+		}
+		else
+		{
+
+		}
+
+		doGdbCLICmd("set \$current = \$current._M_next", $debug);
+		$current = getAddrByCmd("-data-evaluate-expression \$current", $debug);
+	}
+}
+#---------------------------------------------------------------
+#return 
+#0: not found
+#1: found 1st time
+#2: found more then 1 time
 sub leaky_do_grep_ptr{
 	my $addr = shift;
 	my $ltab = shift;
 	my $debug = shift || $global_debug;
 
-	$addr = hex(substr $addr, 2) if $addr =~ /^0x/;
-
+	$addr = hex(substr $addr, 2) if $addr =~ /^0x/; 
 	if ($addr < $ltab->[0]->[1] or
 		$addr >= $ltab->[-1]->[3])
 	{
+		print "[leaky_do_grep_ptr] addr: $addr not in [$ltab->[0]->[1], $ltab->[-1]->[3])\n" if $debug & $DEBUG_IGNORE;
 		return 0;
 	}
 
 	my $index = leaky_search($addr, $ltab, $debug);
 	if ($index == -1)
 	{
+		print "[leaky_do_grep_ptr]not found addr: $addr \n" if $debug & $DEBUG_IGNORE;
 		return 0;
 	}
 
 	my $buff = $ltab->[$index];
+	if ($buff->[1] | 1)
+	{
+		print "[leaky_do_grep_ptr]dup addr: $addr \n" if $debug & $DEBUG_FILL;
+		return 2;
+	}
 	$buff->[1] |= 1;
+	print "[leaky_do_grep_ptr]found addr: $addr \n" if $debug & $DEBUG_FILL;
+	return 1;
 
 }
 #---------------------------------------------------------------
