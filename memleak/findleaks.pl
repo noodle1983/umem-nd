@@ -57,7 +57,7 @@ leaky_subr_fill(\@ltab, 0);
 
 #leaky_subr_run();
 walk_thread(\@ltab, 0);
-print "actual buffers[[vs_start_str, vs_start_int, vs_end_str, vs_end_int, bufctl, seg_type]]:\n" 
+print "marked buffers[[vs_start_str, vs_start_int, vs_end_str, vs_end_int, bufctl, seg_type]]:\n" 
 	. Data::Dumper->Dump(\@ltab) if $global_debug & $DEBUG_DUMP;
 #walk_section();
 #info variables
@@ -66,7 +66,7 @@ print "actual buffers[[vs_start_str, vs_start_int, vs_end_str, vs_end_int, bufct
 my $LK_BUFCTLHSIZE = 127;
 my %lk_bufctl;
 find_leak(\@ltab);
-#leaky_dump();
+leaky_dump();
 
 doGdbCmd("-gdb-exit");
 close $GDB_OUT;
@@ -81,11 +81,13 @@ sub leaky_dump{
 	my $debug = shift || $global_debug;
 	print "[leaky_dump]\n" if ($debug & $DEBUG_FUN);
 
+	my $leaky_total = 0;
 	printf "\n\n%5s %18s %18s %s\n", "COUNT", "CACHE", "BUFCTL", "CALLER";
 	while (my ($k, $v) = each %lk_bufctl)
 	{
 		#[1, $type, $bufctl_addr, $buf_addr, $timestamp, 
 		#	$stack, $depth, $cid, $data];
+		$leaky_total += $v->[0];
 		printf "%5s %18s %18s %s\n"
 			, $v->[0], $v->[3], $v->[2], disass_addr($v->[5]->[0], $debug);
 		if ($v->[6] > 1)
@@ -97,6 +99,8 @@ sub leaky_dump{
 		}
 		print "\n";
 	}
+	print "$leaky_total blocks found.\n";
+	print "\n";
 
 }
 #---------------------------------------------------------------
@@ -330,13 +334,12 @@ sub walk_thread_frame{
 	for (; $frame_index < $stack_depth; $frame_index++)
 	{
 		doGdbCmd("-stack-select-frame $frame_index", $debug);
-		#my @res = doGdbCmd("-stack-list-locals --simple-values", $debug);
-		#doGdbCmd("-data-evaluate-expression $name", $debug);
-		my @res = doGdbCmd("-stack-list-locals --all-values", $debug);
-		while (@res[0] =~ /(0x[0-9a-f]+)/g)
-		{
-			leaky_do_grep_ptr($1, $data, $debug);
-		}
+
+#		my @res = doGdbCmd("-stack-list-locals --all-values", $debug);
+#		while (@res[0] =~ /(0x[0-9a-f]+)/g)
+#		{
+#			leaky_do_grep_ptr($1, $data, $debug);
+#		}
 		
 		walk_thread_frame_variabale($data, $callback, $debug);	
 	}
@@ -368,8 +371,12 @@ sub walk_thread_frame_variabale{
 		print "name: $name, type: $type, value:$value\n";
 		if ($type =~ m/^std::list/)
 		{
-			walk_std_list($name, $type, $data, $callback, -1); 
+			walk_std_list($name, $type, $data, $callback, $debug); 
 			next;
+		}
+		else
+		{
+			walk_var($name, $type, $value, $data, $callback, $debug);
 		}
 
 	}
@@ -383,19 +390,30 @@ sub walk_var{
 	my $data = shift;
 	my $callback = shift;
 	my $debug = shift || $global_debug;
-	print "[walk_var]\n" if ($debug & $DEBUG_FUN);
+	print "[walk_var($name, $type, $value)]\n" if ($debug & $DEBUG_FUN);
 
-	if ($type =~ /\*/)
+	if ($type =~ /(.*)\*$/)
 	{
-		if ($value)
+		my $ref_type = $1;
+		if (not $value)
 		{
-			if (leaky_do_grep_ptr($current, $data, $debug) > 0)
-			{
-				print "found buffer: $current\n";
-			}
+			$value = getAddrByCmd("-data-evaluate-expression $name", $debug);
 		}
-		print "[walk_var] ignore var:$type $name, value is empty\n" if $debug & $DEBUG_IGNORE;
-
+		leaky_do_grep_ptr($value, $data, $debug);
+		walk_var("*(($type)$value)", $ref_type, 0, $data, $callback, $debug);
+	}
+	elsif ($value =~ /(0x[0-9a-f]+)/)
+	{
+		leaky_do_grep_ptr($1, $data, $debug);
+	}
+	else
+	{
+		my @res = doGdbCmd("-data-evaluate-expression $name", $debug);
+		while (@res[0] =~ /(0x[0-9a-f]+)/g)
+		{
+			leaky_do_grep_ptr($1, $data, $debug);
+		}
+		
 	}
 }
 #---------------------------------------------------------------
@@ -407,27 +425,24 @@ sub walk_std_list{
 	my $debug = shift || $global_debug;
 	print "[walk_std_list]\n" if ($debug & $DEBUG_FUN);
 
-	my $node_type = (split ',',$list_type)[0]; 
+	my $node_type; 
+	if ($list_type =~ m/<(.*?),/)
+	{
+		$node_type = $1;
+	}
+	die "[walk_std_list] fatal error: unknow var type of $list_type $list_name\n"
+		unless $node_type;
 
 	my $header = getAddrByCmd("-data-evaluate-expression &$list_name._M_impl._M_node", $debug);
 	doGdbCLICmd("set \$current = $list_name._M_impl._M_node._M_next", $debug);
 	my $current = getAddrByCmd("-data-evaluate-expression \$current", $debug);
 	while($header ne $current)
 	{
-		if (leaky_do_grep_ptr($current, $data, $debug) > 0)
-		{
-			print "found buffer: $current\n";
-		}
+		leaky_do_grep_ptr($current, $data, $debug); 
+
 		#get the node value
 		my $node_addr = getAddrByCmd("-data-evaluate-expression (\$current+1)", $debug);
-		if ($node_type =~ /\*/)
-		{
-			my $node = getAddrByCmd("-data-evaluate-expression *($node_type*)(\$current+1)", $debug) 
-		}
-		else
-		{
-
-		}
+		walk_var("*(($node_type*)(\$current+1))", "$node_type", 0, $data, $callback, $debug);
 
 		doGdbCLICmd("set \$current = \$current._M_next", $debug);
 		$current = getAddrByCmd("-data-evaluate-expression \$current", $debug);
@@ -459,13 +474,15 @@ sub leaky_do_grep_ptr{
 	}
 
 	my $buff = $ltab->[$index];
-	if ($buff->[1] | 1)
+	if ($buff->[1] & 1)
 	{
-		print "[leaky_do_grep_ptr]dup addr: $addr \n" if $debug & $DEBUG_FILL;
+		print "[leaky_do_grep_ptr]dup addr: $addr in [$buff->[0],$buff->[2])\n" 
+			if $debug & $DEBUG_FILL;
 		return 2;
 	}
 	$buff->[1] |= 1;
-	print "[leaky_do_grep_ptr]found addr: $addr \n" if $debug & $DEBUG_FILL;
+	print "[leaky_do_grep_ptr]found addr: $addr in [$buff->[0],$buff->[2])\n" 
+		if $debug & $DEBUG_FILL;
 	return 1;
 
 }
@@ -615,6 +632,7 @@ sub leaky_cache
 	{
 		$data->[$back_it]->[3] = $data->[$back_it]->[1] + $cache_bufsize;
 		$data->[$back_it]->[2] = sprintf "0x%x", $data->[$back_it]->[3];
+		$back_it -= 1;
 	}
 }
 #---------------------------------------------------------------
@@ -1024,7 +1042,7 @@ sub disass_func{
 	my $debug = shift||$global_debug;
 
 	my @res = doGdbCLICmd("x $addr", $debug);
-	die "[disass_func]fatal error: failed to disass func at $addr \n@res\n" if not $res[-1] =~ /^\^done/;
+	#die "[disass_func]fatal error: failed to disass func at $addr \n@res\n" if not $res[-1] =~ /^\^done/;
 
 	if ($res[0] =~ /<(.*)>/)
 	{
