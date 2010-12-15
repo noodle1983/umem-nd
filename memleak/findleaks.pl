@@ -374,6 +374,11 @@ sub walk_thread_frame_variabale{
 			walk_std_list($name, $type, $data, $callback, $debug); 
 			next;
 		}
+		elsif ($type =~ m/^std::vector/)
+		{
+			walk_std_vector($name, $type, $data, $callback, -1); 
+			next;
+		}
 		else
 		{
 			walk_var($name, $type, $value, $data, $callback, $debug);
@@ -417,6 +422,36 @@ sub walk_var{
 	}
 }
 #---------------------------------------------------------------
+sub walk_std_vector{
+	my $vector_name = shift;
+	my $vector_type = shift;
+	my $data = shift;
+	my $callback = shift;
+	my $debug = shift || $global_debug;
+	print "[walk_std_vector]\n" if ($debug & $DEBUG_FUN);
+
+	my $node_type; 
+	if ($vector_type =~ m/<(.*?),/)
+	{
+		$node_type = $1;
+	}
+	die "[walk_std_vector] fatal error: unknow var type of $vector_type $vector_name\n"
+		unless $node_type;
+
+	my $tail = getAddrByCmd("-data-evaluate-expression $vector_name._M_impl._M_finish", $debug);
+	doGdbCLICmd("set \$current = $vector_name._M_impl._M_start", $debug);
+	my $current = getAddrByCmd("-data-evaluate-expression \$current", $debug);
+	while($tail ne $current)
+	{
+		leaky_do_grep_ptr($current, $data, $debug); 
+
+		walk_var("*(($node_type*)(\$current))", "$node_type", 0, $data, $callback, $debug);
+
+		doGdbCLICmd("set \$current = \$current + 1", $debug);
+		$current = getAddrByCmd("-data-evaluate-expression \$current", $debug);
+	}
+}
+#---------------------------------------------------------------
 sub walk_std_list{
 	my $list_name = shift;
 	my $list_type = shift;
@@ -424,6 +459,9 @@ sub walk_std_list{
 	my $callback = shift;
 	my $debug = shift || $global_debug;
 	print "[walk_std_list]\n" if ($debug & $DEBUG_FUN);
+
+	#walk_std_container("&$list_name._M_impl._M_node", 
+	#					"",
 
 	my $node_type; 
 	if ($list_type =~ m/<(.*?),/)
@@ -433,15 +471,15 @@ sub walk_std_list{
 	die "[walk_std_list] fatal error: unknow var type of $list_type $list_name\n"
 		unless $node_type;
 
-	my $header = getAddrByCmd("-data-evaluate-expression &$list_name._M_impl._M_node", $debug);
+	my $tail = getAddrByCmd("-data-evaluate-expression &$list_name._M_impl._M_node", $debug);
 	doGdbCLICmd("set \$current = $list_name._M_impl._M_node._M_next", $debug);
 	my $current = getAddrByCmd("-data-evaluate-expression \$current", $debug);
-	while($header ne $current)
+	while($tail ne $current)
 	{
 		leaky_do_grep_ptr($current, $data, $debug); 
 
 		#get the node value
-		my $node_addr = getAddrByCmd("-data-evaluate-expression (\$current+1)", $debug);
+		#my $node_addr = getAddrByCmd("-data-evaluate-expression (\$current+1)", $debug);
 		walk_var("*(($node_type*)(\$current+1))", "$node_type", 0, $data, $callback, $debug);
 
 		doGdbCLICmd("set \$current = \$current._M_next", $debug);
@@ -837,6 +875,7 @@ sub leaky_estimate
 
 	$$data++;
 	print "name:$vm_name, data:$$data\n";
+	doGdbCmd("-data-evaluate-expression \"*((umem_cache_t*)$cache_addr)\"", $DEBUG_GDBCMD) . "\n";
 #	if ($vm_name ne "umem_default" 
 #		&& $vm_name ne "umem_firewall")
 #	{

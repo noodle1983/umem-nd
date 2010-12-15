@@ -2,13 +2,21 @@
 #include "pthread.h"
 #include "stdio.h"
 #include <list>
+#include <vector>
 
 using namespace std;
 
 class Container
 {
 	public:
-		Container(){};
+		Container()
+		{
+			_a = new char[26]; 
+			for (int i = 0; i < 26; i++)
+			{
+				_a[i] = 'a' + i;
+			}
+		};
 		Container(char* a):_a(a)
 		{};
 		char * _a;
@@ -20,7 +28,13 @@ void* leak(void* ptr)
 	list<Container*> l;
 	for (int i = 0; i < 5; i++)
 	{
-		l.push_back(new Container(new char[4]));
+		l.push_back(new Container());
+	}
+
+	vector<Container*> v;
+	for (int i = 0; i < 5; i++)
+	{
+		v.push_back(new Container());
 	}
 
 	for (int i = 0; i < 5; i++)
