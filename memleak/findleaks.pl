@@ -376,7 +376,7 @@ sub walk_thread_frame_variabale{
 		}
 		elsif ($type =~ m/^std::vector/)
 		{
-			walk_std_vector($name, $type, $data, $callback, -1); 
+			walk_std_vector($name, $type, $data, $callback, $debug); 
 			next;
 		}
 		else
